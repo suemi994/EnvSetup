@@ -31,7 +31,6 @@ conky.config = {
 }
 
 conky.text = [[
-上行 ${upspeed wlp5s0}/s 下行 ${downspeed wlp5s0}/s \
 cpu ${cpu cpu0}% \
 mem ${mem} \
 磁盘 ${fs_used /} \

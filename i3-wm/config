@@ -16,7 +16,8 @@ exec --no-startup-id xrandr --output VIRTUAL1 --off --output DP3 --off --output 
 exec --no-startup-id fcitx-autostart
 exec --no-startup-id /usr/bin/rslsync
 exec --no-startup-id /usr/bin/nm-applet
-exec --no-startup-id xcompmgr &
+#exec --no-startup-id xcompmgr &
+
 
 # 壁纸须先安装feh，并在此指定路径
 
@@ -24,11 +25,39 @@ set $mod Mod4
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
-font pango:monospace 8
+#font pango:monospace 8
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
 #font pango:DejaVu Sans Mono 8
+
+set $bg-color 	         #121417
+set $inactive-bg-color   #121417
+set $text-color          #97A09C
+set $inactive-text-color #60867f
+set $urgent-bg-color     #A4886C
+set $FOCUS #deded6
+set $UNFOCUS #2b3135
+
+set $FOUNT Titillium
+
+
+# Font awesome icon : https://fontawesome.com/cheatsheet
+
+# aesthetics
+font pango:$FOUNT,Font Awesome 5 Free 10
+for_window [class="^.*"] border pixel 0
+gaps inner 6
+gaps outer 0
+hide_edge_borders both
+smart_gaps on
+
+# Layout colors 	       bord     bg       text     indicator (split)
+#client.focused 		    	 $FOCUS   $FOCUS   $FOCUS   $FOCUS
+#client.focused_inactive  $UNFOCUS $UNFOCUS $UNFOCUS $UNFOCUS
+#client.unfocused 	       $UNFOCUS $UNFOCUS $UNFOCUS $UNFOCUS
+#client.urgent 		    	 $FOCUS   $FOCUS   $FOCUS   $FOCUS
+#client.background 
 
 # Before i3 v4.8, we used to recommend this one as the default:
 # font -misc-fixed-medium-r-normal--13-120-75-75-C-70-iso10646-1
@@ -232,32 +261,51 @@ client.background       #FFFFFF
 # finds out, if available)
 bindsym $mod+m bar mode toggle
 #bar {
-#        status_command i3status
+#    # i3bar调用
+#    status_command conky -c $HOME/.config/i3/conkyrc_bar
+#    # 显示位置
+#    #position top
+#    # 是否隐藏
+#    #mode hide
+#    # 显示/隐藏切换键
+#    #modifier $mod
+#    # 拆解工作区名（隐藏前面的1:2:3:……）
+#    strip_workspace_numbers yes
+#    # 定义分隔符（适用于i3status）
+#    #separator_symbol " "
+#    colors {
+#        background #333333
+#        statusline #FFFFFF
+#        #eparator  #3399FF
+#        # 工作区颜色         边框    背景    文字
+#        focused_workspace  #111111 #111111 #FFFFFF
+#        active_workspace   #FFFFFF #FFFFFF #FFFFFF
+#        inactive_workspace #333333 #333333 #FFFFFF
+#        urgent_workspace   #990000 #990000 #FFFFFF
+#        #binding_mode       #990000 #990000 #FFFFFF
+#    }
 #}
+
 bar {
-    # i3bar调用
-    status_command conky -c $HOME/.config/i3/conkyrc_bar
-    # 显示位置
-    #position top
-    # 是否隐藏
-    #mode hide
-    # 显示/隐藏切换键
-    #modifier $mod
-    # 拆解工作区名（隐藏前面的1:2:3:……）
-    strip_workspace_numbers yes
-    # 定义分隔符（适用于i3status）
-    #separator_symbol " "
-    colors {
-        background #333333
-        statusline #FFFFFF
-        #eparator  #3399FF
-        # 工作区颜色         边框    背景    文字
-        focused_workspace  #111111 #111111 #FFFFFF
-        active_workspace   #FFFFFF #FFFFFF #FFFFFF
-        inactive_workspace #333333 #333333 #FFFFFF
-        urgent_workspace   #990000 #990000 #FFFFFF
-        #binding_mode       #990000 #990000 #FFFFFF
-    }
-}
+	position	top
+  height 30
+	#status_command	i3status -c ~/.config/i3/i3status.conf
+	status_command i3blocks -c ~/.config/i3/i3blocks.conf
+  tray_output	primary
+	separator_symbol " "
+  strip_workspace_numbers yes
+	colors {
+		background  #121417
+		statusline #deded6
+		separator  #4c5356
+		focused_workspace #673AB7 #673AB7 #deded6
+		active_workspace #151515 #151515 #d7d0c7
+		inactive_workspace #2b3135 #2b3135 #deded6
+		urgent_workspace #cd546c #ef545f #eddcd3
+	}
+}	 
 
 exec --no-startup-id feh --bg-scale "$HOME/Pictures/wallpaper.jpg"
+exec --no-startup-id "/usr/bin/compton --config  /home/suemi/.config/i3/compton.conf"
+# notification daemon
+exec --no-startup-id /usr/lib/xfce4/notifyd/xfce4-notifyd 
