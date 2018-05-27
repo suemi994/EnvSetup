@@ -93,6 +93,8 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+set -o vi
+
 export EDITOR="vim"
 export SYSTEMD_EDITOR="vim"
 

@@ -23,12 +23,12 @@ i3blocks:
 i3:
   - i3blocks
   - compton
-  - dmenu
-  - quickswitch-i3
+  - rofi
+#  - quickswitch-i3
   - xfce4-appfinder (appmenu)
-  - nitrogen (wallpaper)
+  - feh (wallpaper)
   - xfce4-notifyd (system notification)
-  - lxappearance-gtk3
+#  - lxappearance-gtk3
   - arandr
 
 DM:
@@ -46,21 +46,20 @@ other apps:
   - deepin-screenshot
   - nemo[gvfs-smb(samba客户端),nemo-fileroller,nemo-image-converter,nemo-preview]
   - fcitx
-  - google-chrome
   - telegram-desktop
-  - pantheon-terminal
+  - terminator 
   - shotwell (image)
   - vlc (video)
   - netease-cloud-music (music)
-  - file-roller
+  - file-roller # 解压软件
   - visual-studio-code
 
 fonts:
-  - Titillium
+#  - Titillium
   - fontawesome5
-  - Roboto mono
-  - wqy-microhei
-  - Source Han Sans CN
+#  - Roboto mono
+#  - wqy-microhei
+#  - Source Han Sans CN
 
 
 find WM: xprop|grep WM_CLASS
