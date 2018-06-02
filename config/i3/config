@@ -309,3 +309,5 @@ exec --no-startup-id feh --bg-scale "$HOME/Pictures/WechatIMG25.jpeg"
 exec --no-startup-id "/usr/bin/compton --config  /home/suemi/.config/i3/compton.conf"
 # notification daemon
 exec --no-startup-id /usr/lib/xfce4/notifyd/xfce4-notifyd 
+# power manager
+exec --no-startup-id sleep 3 && xfce4-power-manager

@@ -7,7 +7,7 @@
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME="mortalscumbag"
 
 # Set list of themes to load
 # Setting this variable when ZSH_THEME=random
@@ -97,7 +97,6 @@ set -o vi
 
 export EDITOR="vim"
 export SYSTEMD_EDITOR="vim"
-
 
 [[ -s "/home/suemi/.gvm/scripts/gvm" ]] && source "/home/suemi/.gvm/scripts/gvm"
 export GOHOME=/home/suemi/Support/GOHOME
