@@ -12,7 +12,7 @@
 
 # => 开机自启（根据需要取消相应的注释#）
 exec --no-startup-id /usr/bin/blueman-applet
-exec --no-startup-id xrandr --output VIRTUAL1 --off --output DP3 --off --output DP2 --mode 1920x1080 --pos 0x1080 --rotate normal --output DP1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI2 --off --output HDMI1 --off
+#exec --no-startup-id xrandr --output VIRTUAL1 --off --output DP3 --off --output DP2 --mode 1920x1080 --pos 0x1080 --rotate normal --output DP1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI2 --off --output HDMI1 --off
 exec --no-startup-id fcitx-autostart
 exec --no-startup-id /usr/bin/rslsync
 exec --no-startup-id /usr/bin/nm-applet
@@ -305,7 +305,7 @@ bar {
 	}
 }	 
 
-exec --no-startup-id feh --bg-scale "$HOME/Pictures/WechatIMG25.jpeg"
+exec --no-startup-id feh --bg-scale "$HOME/Picture/wallpaper.jpg"
 exec --no-startup-id "/usr/bin/compton --config  /home/suemi/.config/i3/compton.conf"
 # notification daemon
 exec --no-startup-id /usr/lib/xfce4/notifyd/xfce4-notifyd 

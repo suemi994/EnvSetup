@@ -10,6 +10,16 @@ pacman -S i3-gaps
 pacman -S i3blocks
 pacman -S i3scrot
 
+# 显示器设置
+pacman -S arandr
+
+# C++工具链
+pacman -S clang boost cmake cgdb
+
+# vim 安装准备工作
+sudo pip install requests
+pacman -S ctags cscope
+
 # 安装文档查阅软件
 yaourt -S zeal
 
@@ -30,4 +40,9 @@ pacman -S fcitx-qt
 pacman -S fcitx-sogoupinyin
 
 
-pacman -S foxitreader wps-office
+# 日常使用 
+pacman -S netease-cloud-music google-chrome shadowsocks-qt5 electronic-wechat
+pacman -S foxitreader wps-office visual-studio-code-bin
+
+# 编程IDE
+pacman -S intellij-idea-ultimate-edition clion goland
