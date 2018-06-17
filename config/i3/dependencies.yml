@@ -19,6 +19,8 @@ i3blocks:
     - xdotool
   weather:
     - wget
+  audio:
+    - pnmixer
   
 i3:
   - i3blocks

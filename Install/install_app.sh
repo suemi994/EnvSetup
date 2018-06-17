@@ -30,6 +30,10 @@ vim /usr/share/X11/xorg.conf.d/40-libinput.conf
 
 pacman -S gnome-disk-utility
 
+# 音频设置
+pacman -S pulseaudio pulseaudio-bluetooth pulseaudio-alsa
+pacman -S pavucontrol
+
 # 时钟同步
 timedatectl set-ntp true
 

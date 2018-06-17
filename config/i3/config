@@ -184,8 +184,8 @@ bindsym $mod+Tab scratchpad show
 
 bindsym $mod+e exec "nautilus"
 bindsym $mod+g exec "google-chrome-stable"
-bindsym --release Print exec "scrot -m '/home/suemi/Pictures/%s_%H%M_%d.%m.%Y_$wx$h.png'"
-bindsym --release Shift+Print exec "scrot -s '/home/suemi/Pictures/%s_%H%M_%d%m%Y_$wx$h.png'"
+bindsym --release Print exec "scrot -m '/home/suemi/Picture/%s_%H%M_%d.%m.%Y_$wx$h.png'"
+bindsym --release Shift+Print exec "scrot -s '/home/suemi/Picture/%s_%H%M_%d%m%Y_$wx$h.png'"
 
 # Volume Control
 bindsym XF86AudioRaiseVolume exec --no-startup-id amixer -c 0 -q set Master 2dB+ unmute
