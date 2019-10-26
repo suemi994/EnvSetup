@@ -98,7 +98,8 @@ set -o vi
 export EDITOR="vim"
 export SYSTEMD_EDITOR="vim"
 
-[[ -s "/home/suemi/.gvm/scripts/gvm" ]] && source "/home/suemi/.gvm/scripts/gvm"
-export GOHOME=/home/suemi/Support/GOHOME
-export GOPATH=$GOHOME
-export PATH=$PATH:/home/suemi/Support/GOHOME/bin
+#[[ -s "/home/suemi/.gvm/scripts/gvm" ]] && source "/home/suemi/.gvm/scripts/gvm"
+#export GOHOME=/home/suemi/Support/GOHOME
+#export GOPATH=$GOHOME
+#export PATH=$PATH:/home/suemi/Support/GOHOME/bin
+bindkey '^R' history-incremental-search-backward
