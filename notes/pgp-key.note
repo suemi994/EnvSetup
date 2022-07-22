@@ -1,7 +1,0 @@
-# 出现PGP KEY 损毁时实在不行可以用下列方式恢复
-
-sudo rm -rf /etc/pacman.d/gnupg
-sudo pacman-key --init
-sudo pacman-key --populate archlinux
-sudo pacman-key --populate manjaro
-sudo pacman -S archlinuxcn-keyring

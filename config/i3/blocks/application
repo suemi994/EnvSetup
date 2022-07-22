@@ -1,9 +1,0 @@
-#!/bin/bash
-
-APP="${BLOCK_INSTANCE}"
-
-if [ -z "$APP" ]; then exit; fi
-
-if [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
-	$APP --disable-server
-fi
