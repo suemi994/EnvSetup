@@ -21,6 +21,7 @@ Plug 'akinsho/toggleterm.nvim'  " better terminal
 Plug 'lewis6991/spellsitter.nvim' " better spell check
 Plug 'famiu/bufdelete.nvim' " better buffer deletion
 Plug 'cormacrelf/vim-colors-github'
+Plug 'sindrets/diffview.nvim'
 call plug#end()
 
 " vim settings
