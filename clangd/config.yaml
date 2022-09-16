@@ -1,0 +1,4 @@
+Index:
+  Background: Build
+Diagnostics:
+  UnusedIncludes: Strict
