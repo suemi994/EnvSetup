@@ -64,6 +64,7 @@ completion["lsp"] = {
             single_file_support = true,
             cmd = {
                 "clangd",
+                "--compile-commands-dir=build",
                 "--background-index",
                 "--clang-tidy",
                 "--all-scopes-completion",

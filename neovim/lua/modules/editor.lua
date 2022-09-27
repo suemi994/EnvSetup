@@ -39,6 +39,15 @@ function editor.setup_telescope()
     })
 end
 
+function editor.setup_formatter()
+    require("formatter").setup({
+        filetype = {
+            cpp = require("formatter.filetypes.cpp").clangformat,
+            go = require("formatter.filetypes.go").gofmt,
+            cmake = require("formatter.filetypes.cmake").cmakeformat
+        }
+    })
+end
 
 function editor.setup()
     require("pears").setup()
@@ -46,6 +55,7 @@ function editor.setup()
 
     editor.setup_treesitter()
     editor.setup_telescope()
+    editor.setup_formatter()
 end
 
 return editor
