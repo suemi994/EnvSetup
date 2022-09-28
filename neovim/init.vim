@@ -14,6 +14,7 @@ Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'mhartington/formatter.nvim'  " auto format file
+Plug 'mfussenegger/nvim-lint' "  linter
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'steelsojka/pears.nvim'  " brackets auto pair
 Plug 'nvim-telescope/telescope.nvim'  " fuzzy finder

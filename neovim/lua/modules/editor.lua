@@ -40,7 +40,7 @@ function editor.setup_telescope()
 end
 
 function editor.setup_formatter()
-    require("formatter").setup({
+    require('formatter').setup({
         filetype = {
             cpp = require("formatter.filetypes.cpp").clangformat,
             go = require("formatter.filetypes.go").gofmt,
@@ -49,13 +49,21 @@ function editor.setup_formatter()
     })
 end
 
+function editor.setup_linter()
+    require('lint').linters_by_ft = {
+        cpp = {'clangtidy'},
+        python = {'pylint'}
+    }
+end
+
 function editor.setup()
-    require("pears").setup()
+    require('pears').setup()
     require('spellsitter').setup()
 
     editor.setup_treesitter()
     editor.setup_telescope()
     editor.setup_formatter()
+    editor.setup_linter()
 end
 
 return editor
