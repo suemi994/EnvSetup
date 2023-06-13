@@ -13,6 +13,7 @@ Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/nvim-cmp'
+Plug 'simrat39/rust-tools.nvim'
 Plug 'mhartington/formatter.nvim'  " auto format file
 Plug 'mfussenegger/nvim-lint' "  linter
 Plug 'nvim-lualine/lualine.nvim'

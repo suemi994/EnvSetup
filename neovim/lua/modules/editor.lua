@@ -2,7 +2,7 @@ local editor = {}
 
 function editor.setup_treesitter()
     require("nvim-treesitter.configs").setup({
-        ensure_installed = {"cpp", "go", "python"},
+        ensure_installed = {"cpp", "go", "python", "rust"},
         highlight = {
             enable = true,
             additional_vim_regex_highlighting = false
@@ -44,6 +44,7 @@ function editor.setup_formatter()
         filetype = {
             cpp = require("formatter.filetypes.cpp").clangformat,
             go = require("formatter.filetypes.go").gofmt,
+            rust = require("formatter.filetypes.rust").rustfmt,
             cmake = require("formatter.filetypes.cmake").cmakeformat
         }
     })

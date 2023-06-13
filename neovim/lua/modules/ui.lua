@@ -4,13 +4,13 @@ function ui.setup_toggleterm()
     require("toggleterm").setup({
         size = function(term)
             if term.direction == "horizontal" then
-                return 15
+                return 30
             elseif term.direction == "vertical" then
                 return vim.o.columns * 0.5
             end
         end,
         open_mapping = [[<c-j>]],
-        direction = 'vertical'
+        direction = 'horizontal'
     })
     function _G.set_terminal_keymaps()
         local opts = {noremap = true}
@@ -88,12 +88,14 @@ function ui.setup_diffview()
       },
       file_history_panel = {
         log_options = {   -- See ':h diffview-config-log_options'
-          single_file = {
-            diff_merges = "combined",
-          },
-          multi_file = {
-            diff_merges = "first-parent",
-          },
+	  git = {
+            single_file = {
+              diff_merges = "combined",
+            },
+            multi_file = {
+              diff_merges = "first-parent",
+            },
+  	  },
         },
         win_config = {    -- See ':h diffview-config-win_config'
           position = "bottom",
