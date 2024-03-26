@@ -32,7 +32,7 @@ function editor.setup_telescope()
                 }
             },
             layout_config = {
-                vertical = {width = 0.5, height = 0.5}
+                vertical = {width = 0.8, height = 0.8}
             },
             layout_strategy = "vertical",
         },
