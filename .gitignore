@@ -1,1 +1,2 @@
-neovim/plugged
+neovim/plugged*
+*.old

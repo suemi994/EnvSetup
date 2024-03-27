@@ -9,7 +9,7 @@ setup_env () {
 	echo "Setup Env: Install dependencies..."
 	sudo apt-get update -y 
 	sudo apt-get install net-tools curl build-essential libtool automake -y && \
-	sudo apt-get install tree zsh tmux proxychains4 -y && \
+	sudo apt-get install tree fd-find ripgrep zsh tmux proxychains4 -y && \
 	sudo apt-get install gcc g++ clang clangd llvm cmake ninja-build -y && \
 	sudo apt-get install python3-pip
 
@@ -80,6 +80,17 @@ setup_vpn () {
 }
 
 setup_nvim () {
+    check_installed "fd-find"
+    if [ $? -eq 0 ]; then
+        echo "Neovim Setup: fd not found, try install..."
+        sudo apt-get install fd-find -y
+    fi
+    check_installed "ripgrep"
+    if [ $? -eq 0 ]; then
+        echo "Neovim Setup: ripgrep not found, try install..."
+        sudo apt-get install ripgrep -y
+    fi
+
 	nvim --version > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "Neovim already installed, skip..."
@@ -89,7 +100,7 @@ setup_nvim () {
 	tar -C ${ROOT_DIR}/local -xzf nvim-linux64.tar.gz && rm nvim-linux64.tar.gz
 	ln -s ${ROOT_DIR}/local/nvim-linux64/bin/nvim ${ROOT_DIR}/bin/nvim
 	rm -rf ${HOME}/.config/nvim && ln -s ${CUR_DIR}/neovim ${HOME}/.config/nvim
-	echo "Setup neovim finished, enjoy yourself..."
+	echo "Setup Neovim: please enter nvim && execute :PlugInstall && :TSInstallSync lua && :TsInstallSync vimdoc..."
 }
 
 setup_cpp () {

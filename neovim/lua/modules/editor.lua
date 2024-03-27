@@ -5,7 +5,7 @@ function editor.setup_treesitter()
         ensure_installed = {"cpp", "go", "python", "rust"},
         highlight = {
             enable = true,
-			disable = {"css", "lua"},
+			disable = {"css"},
             additional_vim_regex_highlighting = false
         },
         incremental_selection = {
@@ -58,6 +58,32 @@ function editor.setup_linter()
     }
 end
 
+function editor.setup_clipboard()
+	osc = require('osc52')
+	osc.setup({
+	  	max_length = 0,           -- Maximum length of selection (0 for no limit)
+  		silent = false,           -- Disable message on successful copy
+ 	 	trim = false,             -- Trim surrounding whitespaces before copy
+  		tmux_passthrough = true, -- Use tmux passthrough (requires tmux: set -g allow-passthrough on)
+	})
+	vim.keymap.set('n', '<leader>c', osc.copy_operator, {expr = true})
+	vim.keymap.set('n', '<leader>cc', '<leader>c_', {remap = true})
+	vim.keymap.set('v', '<leader>c', osc.copy_visual)
+
+	local function copy(lines, _)
+		osc.copy(table.concat(lines, '\n'))
+	end
+	
+	local function paste()
+		return {vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('')}
+	end
+	vim.g.clipboard = {
+	 	name = 'osc52',
+		copy = {['+'] = copy, ['*'] = copy},
+		paste = {['+'] = paste, ['*'] = paste},
+	}
+end
+
 function editor.setup()
     require('pears').setup()
     require('spellsitter').setup()
@@ -66,6 +92,7 @@ function editor.setup()
     editor.setup_telescope()
     editor.setup_formatter()
     editor.setup_linter()
+	editor.setup_clipboard()
 end
 
 return editor

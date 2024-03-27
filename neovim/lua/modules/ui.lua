@@ -10,7 +10,7 @@ function ui.setup_toggleterm()
             end
         end,
         open_mapping = [[<c-j>]],
-        direction = 'horizontal'
+        direction = 'vertical'
     })
     function _G.set_terminal_keymaps()
         local opts = {noremap = true}

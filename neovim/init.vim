@@ -27,6 +27,7 @@ Plug 'cormacrelf/vim-colors-github'
 Plug 'sindrets/diffview.nvim'
 Plug 'Exafunction/codeium.nvim' " codeium ai assistant
 Plug 'onsails/lspkind.nvim' " vscode style pictograms
+Plug 'ojroques/nvim-osc52' " support ssh clipboard, bundled with neovim version > 0.10.0
 call plug#end()
 
 " vim settings
@@ -42,6 +43,7 @@ set ignorecase smartcase  " ignore case for searching
 set expandtab smarttab shiftwidth=4 tabstop=4
 set foldnestmax=5 foldlevel=5
 set completeopt=menuone
+"set clipboard=unnamedplus " always copied to clipboard provider
 au FileType go setlocal noexpandtab
 au BufReadPost * if line("'\"") > 0 | if line("'\"") <= line("$") | exe("norm '\"") | else |exe "norm $"| endif | endif
 
