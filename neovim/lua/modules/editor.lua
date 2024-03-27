@@ -5,6 +5,7 @@ function editor.setup_treesitter()
         ensure_installed = {"cpp", "go", "python", "rust"},
         highlight = {
             enable = true,
+			disable = {"css", "lua"},
             additional_vim_regex_highlighting = false
         },
         incremental_selection = {

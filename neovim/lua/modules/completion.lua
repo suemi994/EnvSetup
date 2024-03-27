@@ -3,6 +3,7 @@ local completion = {}
 function completion.setup_cmp()
     local cmp = require("cmp")
     local types = require("cmp.types")
+    local lsp_kind = require("lspkind")
     local has_words_before = function()
         local line, col = unpack(vim.api.nvim_win_get_cursor(0))
         return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
@@ -14,13 +15,13 @@ function completion.setup_cmp()
                 {name = "nvim_lsp"},
                 {name = "buffer"},
                 {name = "path"},
-		{name = "codeium"}
+				{name = "codeium"}
             }
         ),
         completion = {
             autocomplete = { types.cmp.TriggerEvent.InsertEnter, types.cmp.TriggerEvent.TextChanged },
         },
-         mapping = {
+        mapping = {
               ["<Tab>"] = cmp.mapping(
                   function(fallback)
                       if has_words_before() then
@@ -34,7 +35,18 @@ function completion.setup_cmp()
              ["<Down>"] = cmp.mapping.select_next_item(),
              ["<Up>"] = cmp.mapping.select_prev_item(),
              ["<CR>"] = cmp.mapping.confirm({select = true})
-         }
+         },
+		formatting = {
+    		format = lsp_kind.cmp_format({
+      			mode = 'text', -- show only symbol annotations
+      			maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+      			               -- can also be a function to dynamically calculate max width such as 
+      			               -- maxwidth = function() return math.floor(0.45 * vim.o.columns) end,
+      			ellipsis_char = '...', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+      			show_labelDetails = true, -- show labelDetails in menu. Disabled by default
+				symbol_map = { Codeium = "", }
+	  		})
+		 }
     })
 end
 

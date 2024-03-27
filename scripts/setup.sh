@@ -9,7 +9,7 @@ setup_env () {
 	echo "Setup Env: Install dependencies..."
 	sudo apt-get update -y 
 	sudo apt-get install net-tools curl build-essential libtool automake -y && \
-	sudo apt-get install zsh tmux proxychains4 -y && \
+	sudo apt-get install tree zsh tmux proxychains4 -y && \
 	sudo apt-get install gcc g++ clang clangd llvm cmake ninja-build -y && \
 	sudo apt-get install python3-pip
 
