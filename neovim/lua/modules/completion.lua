@@ -13,7 +13,8 @@ function completion.setup_cmp()
             {
                 {name = "nvim_lsp"},
                 {name = "buffer"},
-                {name = "path"}
+                {name = "path"},
+		{name = "codeium"}
             }
         ),
         completion = {
@@ -53,14 +54,17 @@ end
 completion["lsp"] = {
     ["gopls"] = {
         opt = true,
+	need_require = false,
         setup_args = {},
     },
     ["pylsp"] = {
         opt = true,
+	need_require = false,
         setup_args = {},
     },
     ["clangd"] = {
         opt = true,
+	need_require = false,
         setup_args = {
             single_file_support = true,
             cmd = {
@@ -83,6 +87,11 @@ completion["lsp"] = {
                 },
             },
         }
+    },
+    ["codeium"] = {
+    	opt = true,
+		need_require = true,
+		setup_args = {},
     }
 }
 
@@ -92,32 +101,13 @@ function completion.setup_lsp()
     local nvim_lsp = require("lspconfig")
     for source, conf in pairs(completion["lsp"]) do
         if conf.opt then
-            nvim_lsp[source].setup(conf.setup_args)
+	    	if conf.need_require then
+				require(source).setup(conf.setup_args)
+	    	else
+            	nvim_lsp[source].setup(conf.setup_args)
+			end
         end
     end
---    nvim_lsp.rust_analyzer.setup({
---            settings = {
---                ["rust-analyzer"] = {
---                    assist = {
---                        importEnforceGranularity = true,
---                        importPrefix = "crate"
---                    },
---                    cargo = {
---                       allFeatures = true
---                    },
---                    procMacro = { enable = true },
---                    checkOnSave = {
---                        command = "clippy"
---                    }
---                },
---                inlayHints = {
---                    lifetimeElisionHints = {
---                        enable = true,
---                        useParameterNames = true
---                    }
---                }
---            }
---    })
 end
 
 function completion.setup_rust()

@@ -25,6 +25,7 @@ Plug 'lewis6991/spellsitter.nvim' " better spell check
 Plug 'famiu/bufdelete.nvim' " better buffer deletion
 Plug 'cormacrelf/vim-colors-github'
 Plug 'sindrets/diffview.nvim'
+Plug 'Exafunction/codeium.nvim' "codeium ai assistant
 call plug#end()
 
 " vim settings
