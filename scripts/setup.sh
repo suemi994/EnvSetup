@@ -63,7 +63,7 @@ setup_vpn () {
 	fi
 
 	local CONF_FILE="/tmp/proxychains4.conf.tmp"
-	if [ ! -f "$CONF_FILE" ]; then
+	if [ ! -f "/etc/proxychains4.conf.old" ]; then
 		echo "dynamic_chain" > $CONF_FILE
 		echo "[ProxyList]" >> $CONF_FILE
 		echo "socks5	192.168.50.1	7891" >> $CONF_FILE
@@ -91,6 +91,13 @@ setup_nvim () {
         sudo apt-get install ripgrep -y
     fi
 
+	if [ ! -f "/etc/vim/vimrc.local" ]; then
+		echo "Neovim Setup: initliaze vimrc..."
+		echo "set number" >> /tmp/vimrc
+		echo "set tabstop=4" >> /tmp/vimrc
+		sudo mv /tmp/vimrc /etc/vim/vimrc.local
+	fi
+	
 	nvim --version > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "Neovim already installed, skip..."
@@ -105,7 +112,7 @@ setup_nvim () {
 
 setup_cpp () {
 	echo "Cpp Setup: check compilers...."
-	check_installed "gcc"
+	check_installed "clang"
 	if [ $? -eq 0 ]; then
 		echo "Cpp Setup: install compilers: g++, clang..."
 		sudo apt-get install gcc g++ clang llvm -y
