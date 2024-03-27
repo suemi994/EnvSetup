@@ -18,6 +18,16 @@ setup_env () {
 	local SRC_DIR=`pwd`
 	cd ${ROOT_DIR}  && mkdir etc local tmp bin WorkRoot
 	mv ${SRC_DIR} ${CUR_DIR} && cd ${CUR_DIR}
+
+	echo "Setup Env: Keep alive for ssh connections..."
+	local SSHD_CONF="/etc/ssh/sshd_config.d/keep_alive.conf"
+	if [ ! -f "$SSHD_CONF" ]; then
+		echo "ClientAliveInterval 30" > /tmp/keep_alive.conf
+		echo "ClientAliveCountMax 2" >> /tmp/keep_alive.conf
+		sudo mv /tmp/keep_alive.conf $SSHD_CONF
+	fi
+
+	echo "Setup Env finished, ready to setup sub modules..."
 }
 
 setup_zsh () {
