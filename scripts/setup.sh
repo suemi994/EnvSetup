@@ -165,6 +165,7 @@ setup_rust () {
 	export RUSTUP_HOME="${ROOT_DIR}/local/rustup"
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 	${CARGO_HOME}/bin/rustup default stable
+	${CARGO_HOME}/bin/rustup component add rust-analyzer
 	rustup --version > /dev/null 2>&1
 	if [ $? -gt 0]; then
 		echo "Rust Setup: add binary tool into PATH variable..."

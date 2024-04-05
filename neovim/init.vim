@@ -23,11 +23,14 @@ Plug 'nvim-lua/plenary.nvim'  " depended by telescope
 Plug 'akinsho/toggleterm.nvim'  " better terminal
 Plug 'lewis6991/spellsitter.nvim' " better spell check
 Plug 'famiu/bufdelete.nvim' " better buffer deletion
-Plug 'cormacrelf/vim-colors-github'
 Plug 'sindrets/diffview.nvim'
 Plug 'Exafunction/codeium.nvim' " codeium ai assistant
 Plug 'onsails/lspkind.nvim' " vscode style pictograms
 Plug 'ojroques/nvim-osc52' " support ssh clipboard, bundled with neovim version > 0.10.0
+
+" colorschemes
+Plug 'cormacrelf/vim-colors-github'
+Plug 'catppuccin/nvim'
 call plug#end()
 
 " vim settings
@@ -47,9 +50,9 @@ set completeopt=menuone
 au FileType go setlocal noexpandtab
 au BufReadPost * if line("'\"") > 0 | if line("'\"") <= line("$") | exe("norm '\"") | else |exe "norm $"| endif | endif
 
-colorscheme github
-let g:airline_theme = "github"
-let g:lightline = { 'colorscheme': 'github' }
+colorscheme catppuccin-latte
+let g:airline_theme = "catppuccin"
+let g:lightline = { 'colorscheme': 'catppuccin' }
 set background=light
 
 luafile ~/.config/nvim/conf.lua
