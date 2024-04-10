@@ -27,6 +27,7 @@ Plug 'sindrets/diffview.nvim'
 Plug 'Exafunction/codeium.nvim' " codeium ai assistant
 Plug 'onsails/lspkind.nvim' " vscode style pictograms
 Plug 'ojroques/nvim-osc52' " support ssh clipboard, bundled with neovim version > 0.10.0
+Plug 'liuchengxu/vista.vim' " sidebar rendered with lsp symbols
 
 " colorschemes
 Plug 'cormacrelf/vim-colors-github'
@@ -50,10 +51,19 @@ set completeopt=menuone
 au FileType go setlocal noexpandtab
 au BufReadPost * if line("'\"") > 0 | if line("'\"") <= line("$") | exe("norm '\"") | else |exe "norm $"| endif | endif
 
+" colorscheme settings
 colorscheme catppuccin-latte
 let g:airline_theme = "catppuccin"
 let g:lightline = { 'colorscheme': 'catppuccin' }
 set background=light
+
+" sidebar settings
+let g:vista_default_executive = 'nvim_lsp'
+let g:vista_sidebar_width = 50
+let g:vista_executive_for = {
+	\ 'cpp': 'nvim_lsp',
+	\ 'rs': 'nvim_lsp'
+	\ }
 
 luafile ~/.config/nvim/conf.lua
 hi VertSplit ctermbg=NONE guibg=NONE

@@ -9,7 +9,7 @@ setup_env () {
 	echo "Setup Env: Install dependencies..."
 	sudo apt-get update -y 
 	sudo apt-get install net-tools curl build-essential libtool automake -y && \
-	sudo apt-get install tree fd-find zsh tmux proxychains4 -y && \
+	sudo apt-get install tree fd-find ripgrep zsh tmux proxychains4 -y && \
 	sudo apt-get install gcc g++ clang clangd llvm cmake ninja-build -y && \
 	sudo apt-get install python3-pip
 
@@ -166,7 +166,6 @@ setup_rust () {
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 	${CARGO_HOME}/bin/rustup default stable
 	${CARGO_HOME}/bin/rustup component add rust-analyzer
-	${CARGO_HOME}/bin/cargo install rigrep 
 	rustup --version > /dev/null 2>&1
 	if [ $? -gt 0]; then
 		echo "Rust Setup: add binary tool into PATH variable..."
