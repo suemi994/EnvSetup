@@ -66,17 +66,17 @@ end
 completion["lsp"] = {
     ["gopls"] = {
         opt = true,
-	need_require = false,
+		need_require = false,
         setup_args = {},
     },
     ["pylsp"] = {
         opt = true,
-	need_require = false,
+		need_require = false,
         setup_args = {},
     },
     ["clangd"] = {
         opt = true,
-	need_require = false,
+		need_require = false,
         setup_args = {
             single_file_support = true,
             cmd = {
@@ -109,6 +109,13 @@ completion["lsp"] = {
 
 function completion.setup_lsp()
     completion.setup_lsp_status()
+
+	local navic = require("nvim-navic")
+	local on_attach = function(client, bufnr)
+    	if client.server_capabilities.documentSymbolProvider then
+    	    navic.attach(client, bufnr)
+    	end
+	end
     
     local nvim_lsp = require("lspconfig")
     for source, conf in pairs(completion["lsp"]) do
@@ -116,6 +123,7 @@ function completion.setup_lsp()
 	    	if conf.need_require then
 				require(source).setup(conf.setup_args)
 	    	else
+				conf.setup_args["on_attach"] = on_attach
             	nvim_lsp[source].setup(conf.setup_args)
 			end
         end
@@ -123,6 +131,7 @@ function completion.setup_lsp()
 end
 
 function completion.setup_rust()
+	local navic = require('nvim-navic')
     local function on_attach(client, buffer)
         -- " Show diagnostic popup on cursor hover
         local diag_float_grp = vim.api.nvim_create_augroup("DiagnosticFloat", { clear = true })
@@ -132,6 +141,9 @@ function completion.setup_rust()
           end,
           group = diag_float_grp,
         })
+    	if client.server_capabilities.documentSymbolProvider then
+        	navic.attach(client, buffer)
+    	end
     end
     rt = require('rust-tools')
     rt.setup({

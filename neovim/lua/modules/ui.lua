@@ -22,13 +22,33 @@ function ui.setup_toggleterm()
 end
 
 function ui.setup_lualine()
+	require("nvim-web-devicons").setup({
+		 override = {
+		  zsh = {
+		    icon = "",
+		    color = "#428850",
+		    cterm_color = "65",
+		    name = "Zsh"
+		  }
+		 };
+		 -- globally enable different highlight colors per icon (default to true)
+		 -- if set to false all icons will have the default icon's color
+		 color_icons = true;
+		 -- globally enable default icons (default to false)
+		 -- will get overriden by `get_icons` option
+		 default = true;
+	})
+
+	local navic = require("nvim-navic")
     require("lualine").setup({
         sections = {
             lualine_b = {"branch"},
             lualine_c = {{"buffers", buffers_color = {active = 'white'}}},
-            lualine_x = {"diff", "diagnostics", "filetype"},
+			lualine_x = {{"navic", color_correction = nil, navic_opts = nil}},
+            lualine_y = {"diff", "diagnostics", "filetype"},
+			lualine_z = {"progress", "lsp_progress"}
         },
-        options = {section_separators = "", component_separators = "", globalstatus = true},
+		options = {section_separators = "", component_separators = "", globalstatus = false}
     })
 end
 
