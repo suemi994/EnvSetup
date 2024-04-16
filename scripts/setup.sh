@@ -58,10 +58,17 @@ setup_tmux () {
 		sudo apt-get install tmux -y
 	fi
 	cp ${CUR_DIR}/conf/tmux.conf ~/.tmux.conf
+	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 	if [ $? -gt 0 ]; then
 		echo "Setup tmux: config initiliaze failed, skip..."
 		retun $?
 	fi
+	sh ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+	if [ $? -gt 0 ]; then
+		echo "Setup tmux: install tmux plugin failed, skip..."
+		return $?
+	fi
+	tmux source ~/.tmux.conf
 	echo "Setup tmux finished, enjoy yourself..."
 }
 

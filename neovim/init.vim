@@ -66,6 +66,7 @@ let g:vista_executive_for = {
 	\ 'cpp': 'nvim_lsp',
 	\ 'rs': 'nvim_lsp'
 	\ }
+nnoremap <silent><C-k> <cmd>Vista!!<cr>
 
 luafile ~/.config/nvim/conf.lua
 hi VertSplit ctermbg=NONE guibg=NONE
