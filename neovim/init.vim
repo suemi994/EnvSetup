@@ -34,6 +34,7 @@ Plug 'liuchengxu/vista.vim' " sidebar rendered with lsp symbols
 " colorschemes
 Plug 'cormacrelf/vim-colors-github'
 Plug 'catppuccin/nvim'
+Plug 'NLKNguyen/papercolor-theme'
 call plug#end()
 
 " vim settings
@@ -54,10 +55,10 @@ au FileType go setlocal noexpandtab
 au BufReadPost * if line("'\"") > 0 | if line("'\"") <= line("$") | exe("norm '\"") | else |exe "norm $"| endif | endif
 
 " colorscheme settings
-colorscheme catppuccin-latte
+set background=light
+colorscheme PaperColor
 let g:airline_theme = "catppuccin"
 let g:lightline = { 'colorscheme': 'catppuccin' }
-set background=light
 
 " sidebar settings
 let g:vista_default_executive = 'nvim_lsp'
