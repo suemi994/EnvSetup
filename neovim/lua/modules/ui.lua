@@ -21,6 +21,71 @@ function ui.setup_toggleterm()
     vim.cmd("autocmd! TermOpen term://* lua set_terminal_keymaps()")
 end
 
+function ui.setup_filetree()
+	vim.g.loaded_netrw = 1
+	vim.g.loaded_netrwPlugin = 1
+	vim.opt.termguicolors = true
+
+	require("nvim-tree").setup({
+  		sort = {
+  		  sorter = "case_sensitive",
+  		},
+  		view = {
+  		  width = 40,
+  		},
+  		renderer = {
+  		  group_empty = true,
+  		},
+  		filters = {
+  		  dotfiles = true,
+  		},	
+	})
+
+	vim.keymap.set('n', '<C-h>', '<CMD>:NvimTreeToggle<CR>', {})
+end
+
+function ui.setup_bufferline()
+	require("bufferline").setup({
+		options = {
+			offsets = {
+				filetype = "NvimTree",
+				text = "FileExplorer",
+				highlight = "Directory",
+				separator = true
+			},
+			hover = {
+				enabled = true,
+				delay = 200,
+				reveal = {'close'}
+			},
+		    numbers = function(opts)
+                if vim.api.nvim_get_current_buf() == opts.id then return "" end
+                -- return string.format("%s|", opts.raise(opts.ordinal))
+                return string.format("%s|", opts.ordinal)
+            end,
+            highlights = {
+                buffer_selected = {
+                    gui = "underline",
+                    bold = true,
+                    italic = true
+                }
+            }
+		}
+	})
+
+    local set_keymap = vim.api.nvim_set_keymap
+    set_keymap("n", "<leader>1", "<CMD>lua require'bufferline'.go_to_buffer(1)<CR>", {})
+    set_keymap("n", "<leader>2", "<CMD>lua require'bufferline'.go_to_buffer(2)<CR>", {})
+    set_keymap("n", "<leader>3", "<CMD>lua require'bufferline'.go_to_buffer(3)<CR>", {})
+    set_keymap("n", "<leader>4", "<CMD>lua require'bufferline'.go_to_buffer(4)<CR>", {})
+    set_keymap("n", "<leader>5", "<CMD>lua require'bufferline'.go_to_buffer(5)<CR>", {})
+    set_keymap("n", "<leader>6", "<CMD>lua require'bufferline'.go_to_buffer(6)<CR>", {})
+    set_keymap("n", "<leader>7", "<CMD>lua require'bufferline'.go_to_buffer(7)<CR>", {})
+    set_keymap("n", "<leader>8", "<CMD>lua require'bufferline'.go_to_buffer(8)<CR>", {})
+    set_keymap("n", "<leader>9", "<CMD>lua require'bufferline'.go_to_buffer(9)<CR>", {})
+    set_keymap("n", "<leader>0", "<CMD>lua require'bufferline'.go_to_buffer(10)<CR>", {})
+end
+
 function ui.setup_lualine()
 	require("nvim-web-devicons").setup({
 		 override = {
@@ -42,8 +107,10 @@ function ui.setup_lualine()
 	local navic = require("nvim-navic")
     require("lualine").setup({
         sections = {
+			lualine_a = {"mode"},
             lualine_b = {"branch"},
-            lualine_c = {{"buffers", buffers_color = {active = 'white'}}},
+			lualine_c = {{"filename", symbols = {modified = "●"}}},
+            -- lualine_c = {{"buffers", buffers_color = {active = 'white'}}},
 			lualine_x = {{"navic", color_correction = nil, navic_opts = nil}},
             lualine_y = {"diff", "diagnostics", "filetype"},
 			lualine_z = {"progress", "lsp_progress"}
@@ -231,6 +298,8 @@ end
 
 function ui.setup()
     ui.setup_lualine()
+    ui.setup_bufferline()
+	ui.setup_filetree()
     ui.setup_toggleterm()
     ui.setup_diffview()
 end

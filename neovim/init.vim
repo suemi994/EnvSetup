@@ -16,8 +16,10 @@ Plug 'hrsh7th/nvim-cmp'
 Plug 'simrat39/rust-tools.nvim'
 Plug 'mhartington/formatter.nvim'  " auto format file
 Plug 'mfussenegger/nvim-lint' "  linter
-Plug 'nvim-lualine/lualine.nvim' "  status line
 Plug 'nvim-tree/nvim-web-devicons' " show icon in status line
+Plug 'nvim-tree/nvim-tree.lua' " file explorer tree
+Plug 'nvim-lualine/lualine.nvim' "  status line
+Plug 'akinsho/bufferline.nvim', { 'tag': '*' }
 Plug 'SmiteshP/nvim-navic' " show code context in status line
 Plug 'steelsojka/pears.nvim'  " brackets auto pair
 Plug 'nvim-telescope/telescope.nvim'  " fuzzy finder
@@ -90,11 +92,10 @@ nnoremap <silent><C-p> <cmd>Telescope treesitter<cr>
 nnoremap <silent><C-f> <cmd>Telescope current_buffer_fuzzy_find<cr>
 nnoremap <silent><C-g> <cmd>Telescope live_grep<cr>
 nnoremap <silent><C-S-l> :lua vim.lsp.buf.formatting()<cr>
-" nnoremap <silent><C-j> <cmd>terminal<cr>
 nnoremap <silent><C-s> <cmd>wall<cr>
 nnoremap <silent><C-q> <cmd>qall<cr>
-nnoremap <silent><C-h> <cmd>tabprevious<cr>
-nnoremap <silent><C-l> <cmd>tabnext<cr>
+" nnoremap <silent><C-h> <cmd>tabprevious<cr>
+" nnoremap <silent><C-l> <cmd>tabnext<cr>
 nnoremap <silent><C-S-Left> <cmd>bp<cr>
 nnoremap <silent><C-S-Right> <cmd>bn<cr>
 nnoremap <silent><C-t> <cmd>tabedit<cr>

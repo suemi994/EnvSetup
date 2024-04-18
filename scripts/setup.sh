@@ -202,7 +202,7 @@ setup_golang () {
 	if [ $? -gt 0 ]; then
 		echo "export GOROOT=${GOROOT}" >> ${HOME}/.zshrc
 		echo "export GOPATH=${GOPATH}" >> ${HOME}/.zshrc
-		echo "export PATH=\"\$PATH:\$GOROOT/bin\"" >> ${HOME}/.zshrc
+		echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOPATH/bin\"" >> ${HOME}/.zshrc
 	fi
 
 	$GOROOT/bin/go install golang.org/x/tools/gopls@latest

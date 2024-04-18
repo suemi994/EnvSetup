@@ -84,6 +84,22 @@ function editor.setup_clipboard()
 	}
 end
 
+function editor.setup_auto_cmd()
+    local api = vim.api
+
+    local format_group = api.nvim_create_augroup("FormatAutoGroup", {clear = true})
+    api.nvim_create_autocmd("BufWritePost", {
+        pattern = "*", command = "FormatWrite", group = format_group
+    })
+
+    local linter = require('lint')
+    api.nvim_create_autocmd("BufWritePost", {
+        callback = function()
+            linter.try_lint()
+        end
+    })
+end
+
 function editor.setup()
     require('pears').setup()
     require('spellsitter').setup()
@@ -93,6 +109,8 @@ function editor.setup()
     editor.setup_formatter()
     editor.setup_linter()
 	editor.setup_clipboard()
+
+    editor.setup_auto_cmd()
 end
 
 return editor
