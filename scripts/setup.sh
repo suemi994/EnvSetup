@@ -63,7 +63,7 @@ setup_tmux () {
 		echo "Setup tmux: config initiliaze failed, skip..."
 		retun $?
 	fi
-	sh ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+	bash ~/.tmux/plugins/tpm/scripts/install_plugins.sh
 	if [ $? -gt 0 ]; then
 		echo "Setup tmux: install tmux plugin failed, skip..."
 		return $?

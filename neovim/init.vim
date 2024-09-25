@@ -28,15 +28,19 @@ Plug 'akinsho/toggleterm.nvim'  " better terminal
 Plug 'lewis6991/spellsitter.nvim' " better spell check
 Plug 'famiu/bufdelete.nvim' " better buffer deletion
 Plug 'sindrets/diffview.nvim'
-Plug 'Exafunction/codeium.nvim' " codeium ai assistant
 Plug 'onsails/lspkind.nvim' " vscode style pictograms
 Plug 'ojroques/nvim-osc52' " support ssh clipboard, bundled with neovim version > 0.10.0
 Plug 'liuchengxu/vista.vim' " sidebar rendered with lsp symbols
+Plug 'MunifTanjim/nui.nvim' " popup ui framework
+Plug 'folke/trouble.nvim' " show diagnostics, references, telescope results
+
+" ai assistant
+Plug 'Exafunction/codeium.nvim' " codeium ai assistant
+Plug 'jackMort/ChatGPT.nvim' " chatgpt interactive assistant
 
 " colorschemes
-Plug 'cormacrelf/vim-colors-github'
-Plug 'catppuccin/nvim'
-Plug 'NLKNguyen/papercolor-theme'
+Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
+Plug 'projekt0n/github-nvim-theme'
 call plug#end()
 
 " vim settings
@@ -58,7 +62,7 @@ au BufReadPost * if line("'\"") > 0 | if line("'\"") <= line("$") | exe("norm '\
 
 " colorscheme settings
 set background=light
-colorscheme PaperColor
+colorscheme github_light_default
 let g:airline_theme = "catppuccin"
 let g:lightline = { 'colorscheme': 'catppuccin' }
 
@@ -81,7 +85,7 @@ nnoremap <silent><leader>e :lua vim.lsp.buf.definition()<cr>
 nnoremap <silent><leader>d <cmd>Telescope lsp_definitions<cr>
 nnoremap <silent><leader>s <cmd>Telescope lsp_implementations<cr>
 nnoremap <silent><leader>r <cmd>Telescope lsp_references<cr>
-nnoremap <silent><leader>t <cmd>Telescope diagnostics bufnr=0<cr>
+nnoremap <silent><leader>t <cmd>Trouble diagnostics toggle filter.buf=0 win.position=right<cr>
 nnoremap <silent><leader>v <cmd>vsplit<cr>
 nnoremap <silent><leader>h <cmd>hsplit<cr>
 nnoremap <silent><leader>p <cmd>Telescope git_files<cr>

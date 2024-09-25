@@ -23,12 +23,24 @@ function editor.setup_treesitter()
 end
 
 function editor.setup_telescope()
+	local actions = require("telescope.actions")
+	local open_with_trouble = require("trouble.sources.telescope").open
+
+	-- Use this to add more results without clearing the trouble list
+	local add_to_trouble = require("trouble.sources.telescope").add
     require("telescope").setup({
         defaults = {
             mappings = {
                 i = {
-                    ["<C-j>"] = require("telescope.actions").move_selection_next,
-                    ["<C-k>"] = require("telescope.actions").move_selection_previous,
+                    ["<C-]>"] = require("telescope.actions").move_selection_next,
+                    ["<C-[>"] = require("telescope.actions").move_selection_previous,
+					["<C-r>"] = open_with_trouble,
+                    ["<esc>"] = require("telescope.actions").close
+                },
+                n = {
+                    ["<C-]>"] = require("telescope.actions").move_selection_next,
+                    ["<C-[>"] = require("telescope.actions").move_selection_previous,
+					["<C-r>"] = open_with_trouble,
                     ["<esc>"] = require("telescope.actions").close
                 }
             },

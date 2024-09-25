@@ -296,12 +296,36 @@ function ui.setup_diffview()
     })
 end
 
+function ui.setup_trouble()
+	require('trouble').setup({})
+end
+
+function ui.setup_chatgpt()
+	local chatgpt = require('chatgpt')
+	local home = vim.fn.expand("$HOME")
+	chatgpt.setup({
+		api_host_cmd = 'echo "https://api.chatanywhere.tech"',
+		api_key_cmd = "gpg --decrypt " .. home .. "/.config/chatgpt.gpg",
+		openai_params = {
+			model = "gpt-4o-mini",
+		    frequency_penalty = 0,
+        	presence_penalty = 0,
+        	max_tokens = 4095,
+        	temperature = 0.2,
+        	top_p = 0.1,
+        	n = 1,
+		}
+	})
+end
+
 function ui.setup()
     ui.setup_lualine()
     ui.setup_bufferline()
 	ui.setup_filetree()
     ui.setup_toggleterm()
     ui.setup_diffview()
+	ui.setup_trouble()
+	ui.setup_chatgpt()
 end
 
 return ui
