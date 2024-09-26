@@ -107,6 +107,11 @@ setup_nvim () {
         echo "Neovim Setup: ripgrep not found, try install..."
         sudo apt-get install ripgrep -y
     fi
+	check_installed "luarocks"
+	if [ $? -eq 0 ]; then
+		echo "Neovim Setup: luarocks not found, try install..."
+		sudo apt-get install luarocks -y
+	fi
 
 	if [ ! -f "/etc/vim/vimrc.local" ]; then
 		echo "Neovim Setup: initliaze vimrc..."

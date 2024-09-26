@@ -1,128 +1,179 @@
-local editor = {}
-
-function editor.setup_treesitter()
-    require("nvim-treesitter.configs").setup({
-        ensure_installed = {"cpp", "go", "python", "rust"},
-        highlight = {
-            enable = true,
-			disable = {"css"},
-            additional_vim_regex_highlighting = false
-        },
-        incremental_selection = {
-            enable = true,
-            keymaps = {
-                init_selection = "<CR>",
-                node_incremental = "<CR>",
-                node_decremental = "<BS>",
-                scope_incremental = "<TAB>"
-            }
-        }
-    })
-    vim.wo.foldmethod = "expr"
-    vim.wo.foldexpr = "nvim_treesitter#foldexpr()"
-end
-
-function editor.setup_telescope()
-	local actions = require("telescope.actions")
-	local open_with_trouble = require("trouble.sources.telescope").open
-
-	-- Use this to add more results without clearing the trouble list
-	local add_to_trouble = require("trouble.sources.telescope").add
-    require("telescope").setup({
-        defaults = {
-            mappings = {
-                i = {
-                    ["<C-]>"] = require("telescope.actions").move_selection_next,
-                    ["<C-[>"] = require("telescope.actions").move_selection_previous,
-					["<C-r>"] = open_with_trouble,
-                    ["<esc>"] = require("telescope.actions").close
-                },
-                n = {
-                    ["<C-]>"] = require("telescope.actions").move_selection_next,
-                    ["<C-[>"] = require("telescope.actions").move_selection_previous,
-					["<C-r>"] = open_with_trouble,
-                    ["<esc>"] = require("telescope.actions").close
-                }
-            },
-            layout_config = {
-                vertical = {width = 0.8, height = 0.8}
-            },
-            layout_strategy = "vertical",
-        },
-    })
-end
-
-function editor.setup_formatter()
-    require('formatter').setup({
-        filetype = {
-            cpp = require("formatter.filetypes.cpp").clangformat,
-            go = require("formatter.filetypes.go").gofmt,
-            rust = require("formatter.filetypes.rust").rustfmt,
-            cmake = require("formatter.filetypes.cmake").cmakeformat
-        }
-    })
-end
-
-function editor.setup_linter()
-    require('lint').linters_by_ft = {
-        cpp = {'clangtidy'},
-        python = {'pylint'}
-    }
-end
-
-function editor.setup_clipboard()
-	osc = require('osc52')
-	osc.setup({
-	  	max_length = 0,           -- Maximum length of selection (0 for no limit)
-  		silent = false,           -- Disable message on successful copy
- 	 	trim = false,             -- Trim surrounding whitespaces before copy
-  		tmux_passthrough = true, -- Use tmux passthrough (requires tmux: set -g allow-passthrough on)
-	})
-	vim.keymap.set('n', '<leader>c', osc.copy_operator, {expr = true})
-	vim.keymap.set('n', '<leader>cc', '<leader>c_', {remap = true})
-	vim.keymap.set('v', '<leader>c', osc.copy_visual)
-
-	local function copy(lines, _)
-		osc.copy(table.concat(lines, '\n'))
-	end
-	
-	local function paste()
-		return {vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('')}
-	end
-	vim.g.clipboard = {
-	 	name = 'osc52',
-		copy = {['+'] = copy, ['*'] = copy},
-		paste = {['+'] = paste, ['*'] = paste},
+return {
+	{ -- basic functions for neovim
+		'nvim-lua/plenary.nvim'
+	},
+	{ -- [optional] brackets auto pair
+		'steelsojka/pears.nvim',
+		event = 'VeryLazy'
+	},
+	{ -- [optional] delete neovim buffers without losing window layout
+		'famiu/bufdelete.nvim',
+		event = 'VeryLazy',
+		keys = {
+			{'<leader>q', '<cmd>Bdelete<cr>', silent = true, noremap = true, desc = 'Delete and qiuit current buffer'}
+		}
+	},
+	{ -- copy text through SSH with OSC52
+		'ojroques/nvim-osc52',
+		event = 'VeryLazy',
+		config = function()
+			local osc = require('osc52')
+			osc.setup({
+			  	max_length = 0,           -- Maximum length of selection (0 for no limit)
+  				silent = false,           -- Disable message on successful copy
+ 			 	trim = false,             -- Trim surrounding whitespaces before copy
+  				tmux_passthrough = true, -- Use tmux passthrough (requires tmux: set -g allow-passthrough on)
+			})
+			local function copy(lines, _)
+				osc.copy(table.concat(lines, '\n'))
+			end
+			
+			local function paste()
+				return {vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('')}
+			end
+			vim.g.clipboard = {
+			 	name = 'osc52',
+				copy = {['+'] = copy, ['*'] = copy},
+				paste = {['+'] = paste, ['*'] = paste},
+			}
+		end
+	},
+	{ -- async linter complementary to the built-in Language Server Protocol support
+		'mfussenegger/nvim-lint',
+		event = 'VeryLazy',
+		opts = {
+			events = { 'BufWritePost', 'BufReadPost', 'InsertLeave' },
+			linters_by_ft = {
+    		    cpp = {'clangtidy'},
+    		    python = {'pylint'}
+			}
+		},
+		config = function(_, opts)
+			local linter = require('lint')
+			linter.linters_by_ft = opts.linters_by_ft
+			vim.api.nvim_create_autocmd(opts.events, {
+      			group = vim.api.nvim_create_augroup('nvim-lint', { clear = true }),
+      			callback = function()
+					linter.try_lint()
+				end,
+    		})
+		end
+	},
+	{ -- auto formatter
+		'mhartington/formatter.nvim',
+		event = 'LazyFile',
+		cmd = { 'Format', 'FormatWrite' },
+		dependencies = { 'nvim-lspconfig' },
+		opts = function()
+			return {
+        		filetype = {
+        		    cpp = require('formatter.filetypes.cpp').clangformat,
+        		    go = require('formatter.filetypes.go').gofmt,
+        		    rust = require('formatter.filetypes.rust').rustfmt,
+        		    cmake = require('formatter.filetypes.cmake').cmakeformat,
+					-- lua = require('formatter.filetypes.lua').luaformat
+        		}
+    		}
+		end,
+		config = function(_, opts)
+			require('formatter').setup(opts)
+    		vim.api.nvim_create_autocmd('BufWritePost', {
+				pattern = '*',
+				command = 'FormatWrite',
+    			group = vim.api.nvim_create_augroup('FormatAutoGroup', { clear = true })
+    		})
+		end
+	},
+	{ -- parser generator tool, syntax highlight
+		'nvim-treesitter/nvim-treesitter',
+		version = false,
+		build = ':TSUpdate',
+		-- event = { 'LazyFile', 'VeryLazy' },
+		event = { 'VeryLazy' },
+		cmd = { 'TSUpdateSync', 'TSUpdate', 'TSInstall' },
+		opts_extend = { 'ensure_installed' },
+		opts = {
+        	ensure_installed = {'cpp', 'go', 'python', 'rust'},
+        	highlight = {
+        	    enable = true,
+				disable = {'css'},
+        	    additional_vim_regex_highlighting = false
+        	},
+        	incremental_selection = {
+        	    enable = true,
+        	    keymaps = {
+        	        init_selection = '<CR>',
+        	        node_incremental = '<CR>',
+        	        node_decremental = '<BS>',
+        	        scope_incremental = '<TAB>'
+        	    }
+        	}
+		},
+		config = function(_, opts)
+    		require('nvim-treesitter.configs').setup(opts)
+			vim.wo.foldmethod = 'expr'
+    		vim.wo.foldexpr = 'nvim_treesitter#foldexpr()'
+		end
+	},
+	{ -- fuzzy finder
+		'nvim-telescope/telescope.nvim',
+		cmd = 'Telescope',
+		keys = {
+			{'<leader>d', '<cmd>Telescope lsp_definitions<cr>', silent = true, noremap=true, desc = 'LSP definitions'},
+			{'<leader>i', '<cmd>Telescope lsp_implementations<cr>', silent = true, noremap = true, desc = 'LSP implementations'},
+			{'<leader>r', '<cmd>Telescope lsp_references<cr>', silent = true, noremap = true, desc = 'LSP references'},
+			{'<leader>s', '<cmd>Telescope treesitter<cr>', silent = true, noremap = true, desc = 'Search symbols in current buffer'},
+			{'gf', '<cmd>Telescope grep_string<cr>', mode = 'x', desc = 'Grep string in current buffer'},
+			{'<C-p>', '<cmd>Telescope git_files<cr>', mode = {'n', 'i'}, silent = true, noremap = true, desc = 'Search git files'},
+			{'<C-b>', '<cmd>Telescope buffers<cr>', mode = {'n', 'i'}, silent = true, noremap = true, desc = 'Search opened buffers'},
+			{'<C-f>', '<cmd>Telescope current_buffer_fuzzy_find<cr>', mode = {'n', 'i'}, silent = true, noremap = true, desc = 'Fuzzy search in current buffer'},
+			{'<C-g>', '<cmd>Telescope live_grep<cr>', mode = {'n', 'i'}, silent = true, noremap = true, desc = 'Fuzzy search in whole project'}
+		},
+		opts = function()
+			return {
+        		defaults = {
+        		    mappings = {
+        		        i = {
+        		            ['<C-]>'] = require('telescope.actions').move_selection_next,
+        		            ['<C-[>'] = require('telescope.actions').move_selection_previous,
+        		            ['<esc>'] = require('telescope.actions').close
+        		        },
+        		        n = {
+        		            ['<C-]>'] = require('telescope.actions').move_selection_next,
+        		            ['<C-[>'] = require('telescope.actions').move_selection_previous,
+        		            ['<esc>'] = require('telescope.actions').close
+        		        }
+        		    },
+        		    layout_config = {
+        		        vertical = {width = 0.8, height = 0.8}
+        		    },
+        		    layout_strategy = 'vertical',
+        		},
+			}
+		end
+	},
+	{
+		'akinsho/git-conflict.nvim',
+		dependencies = { 'yorickpeterse/nvim-pqf' },
+		config = true
+	},
+	{
+	  	'folke/which-key.nvim',
+	  	event = 'VeryLazy',
+	  	opts = {
+			keys = {
+				scroll_down = '<C-]>',
+				scroll_up = '<C-[>',
+			},
+		},
+	  	keys = {
+	    	{
+	      	'<leader>?',
+	      	function()
+	        	require('which-key').show({ global = false })
+	      	end,
+	      	desc = 'Buffer Local Keymaps (which-key)',
+	    	},
+	  	},
 	}
-end
-
-function editor.setup_auto_cmd()
-    local api = vim.api
-
-    local format_group = api.nvim_create_augroup("FormatAutoGroup", {clear = true})
-    api.nvim_create_autocmd("BufWritePost", {
-        pattern = "*", command = "FormatWrite", group = format_group
-    })
-
-    local linter = require('lint')
-    api.nvim_create_autocmd("BufWritePost", {
-        callback = function()
-            linter.try_lint()
-        end
-    })
-end
-
-function editor.setup()
-    require('pears').setup()
-    require('spellsitter').setup()
-
-    editor.setup_treesitter()
-    editor.setup_telescope()
-    editor.setup_formatter()
-    editor.setup_linter()
-	editor.setup_clipboard()
-
-    editor.setup_auto_cmd()
-end
-
-return editor
+}

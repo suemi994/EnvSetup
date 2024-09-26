@@ -1,2 +1,3 @@
 neovim/plugged*
 *.old
+*/lazy-rock.json

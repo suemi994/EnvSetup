@@ -1,6 +1,68 @@
-local completion = {}
+local lsp_sources = {
+    ["gopls"] = {
+        opt = true,
+		need_require = false,
+        setup_args = {},
+    },
+    ["pylsp"] = {
+        opt = true,
+		need_require = false,
+        setup_args = {},
+    },
+    ["clangd"] = {
+        opt = true,
+		need_require = false,
+        setup_args = {
+            single_file_support = true,
+            cmd = {
+                "clangd",
+                "--compile-commands-dir=build",
+                "--background-index",
+                "--clang-tidy",
+                "--all-scopes-completion",
+                "--cross-file-rename",
+                "--pch-storage=disk",
+                "--header-insertion=iwyu",
+                "--query-driver=/usr/bin/g++",
+            },
+            commands = {
+                ClangdSwitchSourceHeader = {
+                    function()
+                        switch_source_header_splitcmd(0, "edit")
+                    end,
+                    description = "Open source/header in current buffer",
+                },
+            },
+        }
+    },
+    ["codeium"] = {
+    	opt = false,
+		need_require = true,
+		setup_args = {},
+    }
+}
 
-function completion.setup_cmp()
+function setup_lsp(_, opts)
+	local navic = require("nvim-navic")
+	local on_attach = function(client, bufnr)
+		if client.server_capabilities.documentSymbolProvider then
+		    navic.attach(client, bufnr)
+		end
+	end
+	local nvim_lsp = require("lspconfig")
+	for source, conf in pairs(opts) do
+	    if conf.opt then
+	    	if conf.need_require then
+				require(source).setup(conf.setup_args)
+	    	else
+				conf.setup_args["on_attach"] = on_attach
+	        	nvim_lsp[source].setup(conf.setup_args)
+			end
+	    end
+	end			
+end
+
+function setup_cmp()
     local cmp = require("cmp")
     local types = require("cmp.types")
     local lsp_kind = require("lspkind")
@@ -47,90 +109,10 @@ function completion.setup_cmp()
 				symbol_map = { Codeium = "", }
 	  		})
 		 }
-    })
+    })		
 end
 
-function completion.setup_lsp_status()
-    local lsp_status = require('lsp-status')
-    lsp_status.register_progress()
-    lsp_status.config({
-        indicator_errors = "❌",
-        indicator_warnings = "⚠️ ",
-        indicator_info = "ℹ️ ",
-        -- https://emojipedia.org/tips/
-        indicator_hint = "💡",
-        indicator_ok = "✅",
-    })
-end
-
-completion["lsp"] = {
-    ["gopls"] = {
-        opt = true,
-		need_require = false,
-        setup_args = {},
-    },
-    ["pylsp"] = {
-        opt = true,
-		need_require = false,
-        setup_args = {},
-    },
-    ["clangd"] = {
-        opt = true,
-		need_require = false,
-        setup_args = {
-            single_file_support = true,
-            cmd = {
-                "clangd",
-                "--compile-commands-dir=build",
-                "--background-index",
-                "--clang-tidy",
-                "--all-scopes-completion",
-                "--cross-file-rename",
-                "--pch-storage=disk",
-                "--header-insertion=iwyu",
-                "--query-driver=/usr/bin/g++",
-            },
-            commands = {
-                ClangdSwitchSourceHeader = {
-                    function()
-                        switch_source_header_splitcmd(0, "edit")
-                    end,
-                    description = "Open source/header in current buffer",
-                },
-            },
-        }
-    },
-    ["codeium"] = {
-    	opt = true,
-		need_require = true,
-		setup_args = {},
-    }
-}
-
-function completion.setup_lsp()
-    completion.setup_lsp_status()
-
-	local navic = require("nvim-navic")
-	local on_attach = function(client, bufnr)
-    	if client.server_capabilities.documentSymbolProvider then
-    	    navic.attach(client, bufnr)
-    	end
-	end
-    
-    local nvim_lsp = require("lspconfig")
-    for source, conf in pairs(completion["lsp"]) do
-        if conf.opt then
-	    	if conf.need_require then
-				require(source).setup(conf.setup_args)
-	    	else
-				conf.setup_args["on_attach"] = on_attach
-            	nvim_lsp[source].setup(conf.setup_args)
-			end
-        end
-    end
-end
-
-function completion.setup_rust()
+function setup_rust()
 	local navic = require('nvim-navic')
     local function on_attach(client, buffer)
         -- " Show diagnostic popup on cursor hover
@@ -195,10 +177,39 @@ function completion.setup_rust()
     })
 end
 
-function completion.setup()
-    completion.setup_rust()
-    completion.setup_cmp()
-    completion.setup_lsp()
-end
-
-return completion
+return {
+	{
+		'neovim/nvim-lspconfig',
+		version = false,
+		dependencies = {
+			'nvim-navic',
+			{
+				'Exafunction/codeium.nvim',
+				enabled = lsp_sources['codeium'].opt
+			}
+		},
+		opts = lsp_sources,
+		config = setup_lsp
+	},
+	{
+		'hrsh7th/nvim-cmp',
+		version = false,
+		event = 'InsertEnter',
+		dependencies = {
+			'onsails/lspkind.nvim',
+			'hrsh7th/cmp-nvim-lsp',
+			'hrsh7th/cmp-buffer',
+			'hrsh7th/cmp-path',
+			'nvim-lspconfig'
+		},
+		config = setup_cmp
+	},
+	{
+		'simrat39/rust-tools.nvim',
+		version = false,
+		event = 'LazyFile',
+		ft = {'rs'},
+		dependencies = {'telescope.nvim' , 'nvim-navic' },
+		config = setup_rust	
+	}
+}
