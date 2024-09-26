@@ -107,11 +107,6 @@ setup_nvim () {
         echo "Neovim Setup: ripgrep not found, try install..."
         sudo apt-get install ripgrep -y
     fi
-	check_installed "luarocks"
-	if [ $? -eq 0 ]; then
-		echo "Neovim Setup: luarocks not found, try install..."
-		sudo apt-get install luarocks -y
-	fi
 
 	if [ ! -f "/etc/vim/vimrc.local" ]; then
 		echo "Neovim Setup: initliaze vimrc..."
@@ -130,6 +125,22 @@ setup_nvim () {
 	ln -s ${ROOT_DIR}/local/nvim-linux64/bin/nvim ${ROOT_DIR}/bin/nvim
 	rm -rf ${HOME}/.config/nvim && ln -s ${CUR_DIR}/neovim ${HOME}/.config/nvim
 	echo "Setup Neovim: please enter nvim && execute :PlugInstall && :TSInstallSync lua && :TsInstallSync vimdoc..."
+}
+
+setup_lua() {
+	echo "Lua Setup: check luarocks..."
+	check_installed "luarocks"
+	if [ $? -eq 0 ]; then
+		echo "Neovim Setup: luarocks not found, try install..."
+		sudo apt-get install luarocks -y
+	else
+		echo "Lua already installed..."
+		return
+	fi
+	echo -e "export LUAROCKS_PATH=${HOME}/.luarocks" >> ${HOME}/.zshrc
+	echo -e "export PATH=\"\$PATH:\${LUAROCKS_HOME}/bin\"" >> ${HOME}/.zshrc
+
+	luarocks install --local  --server=https://luarocks.org/dev luaformatter
 }
 
 setup_cpp () {
