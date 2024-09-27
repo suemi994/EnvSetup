@@ -311,9 +311,10 @@ return {
     }, { -- sidebar with lsp symbols
         'liuchengxu/vista.vim',
         dependencies = {'nvim-lspconfig'},
+        cmd = {'Vista'},
         keys = {
             {
-                '<C-m>',
+                '<C-k>',
                 '<cmd>Vista!!<cr>',
                 mode = {'n', 'i'},
                 silent = true,
