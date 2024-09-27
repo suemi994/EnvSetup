@@ -22,7 +22,11 @@ local lsp_sources = {
             }
         }
     },
-    ['codeium'] = {opt = false, need_require = true, setup_args = {}}
+    ["codeverse"] = {
+    	opt = true,
+		need_require = true,
+		setup_args = {},
+    }
 }
 
 function setup_lsp(_, opts)
@@ -57,10 +61,14 @@ function setup_cmp()
     end
     cmp.setup({
         preselect = cmp.PreselectMode.None,
-        sources = cmp.config.sources({
-            {name = 'nvim_lsp'}, {name = 'buffer'}, {name = 'path'},
-            {name = 'codeium'}
-        }),
+        sources = cmp.config.sources(
+            {
+                {name = "nvim_lsp"},
+                {name = "buffer"},
+                {name = "path"},
+				{name = "codeverse"}
+            }
+        ),
         completion = {
             autocomplete = {
                 types.cmp.TriggerEvent.InsertEnter,
@@ -156,8 +164,8 @@ return {
         'neovim/nvim-lspconfig',
         version = false,
         dependencies = {
-            'nvim-navic',
-            {'Exafunction/codeium.nvim', enabled = lsp_sources['codeium'].opt}
+			'https://code.byted.org/chenjiaqi.cposture/codeverse.vim.git',
+			enabled = lsp_sources['codeverse'].opt
         },
         opts = lsp_sources,
         config = setup_lsp

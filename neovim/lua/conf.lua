@@ -26,7 +26,6 @@ vim.g.maplocalleader = ','
 opt.termguicolors = true
 opt.laststatus = 3
 opt.number = true
-opt.signcolumn = number
 opt.splitbelow = true
 opt.splitright = true
 opt.ignorecase = true
