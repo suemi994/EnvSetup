@@ -6,7 +6,8 @@ return {
         event = 'VeryLazy'
     }, { -- [optional] delete neovim buffers without losing window layout
         'famiu/bufdelete.nvim',
-        event = 'VeryLazy',
+        cmd = 'Bdelete',
+        -- event = 'VeryLazy',
         keys = {
             {
                 '<leader>q',
@@ -87,8 +88,7 @@ return {
         'nvim-treesitter/nvim-treesitter',
         version = false,
         build = ':TSUpdate',
-        -- event = { 'LazyFile', 'VeryLazy' },
-        event = {'VeryLazy'},
+        event = {'LazyFile', 'VeryLazy'},
         cmd = {'TSUpdateSync', 'TSUpdate', 'TSInstall'},
         opts_extend = {'ensure_installed'},
         opts = {
@@ -116,6 +116,7 @@ return {
     }, { -- fuzzy finder
         'nvim-telescope/telescope.nvim',
         cmd = 'Telescope',
+        event = 'VeryLazy',
         keys = {
             {
                 '<leader>d',
@@ -176,30 +177,26 @@ return {
                 desc = 'Fuzzy search in whole project'
             }
         },
-        opts = function()
-            local actions = require('telescope.actions')
-            return {
-                defaults = {
-                    mappings = {
-                        i = {
-                            ['<C-]>'] = actions.move_selection_next,
-                            ['<C-[>'] = actions.move_selection_previous,
-                            ['<esc>'] = actions.close
-                        },
-                        n = {
-                            ['<C-]>'] = actions.move_selection_next,
-                            ['<C-[>'] = actions.move_selection_previous,
-                            ['<esc>'] = actions.close
-                        }
-                    },
-                    layout_config = {vertical = {width = 0.8, height = 0.8}},
-                    layout_strategy = 'vertical'
-                }
+        opts = {
+            defaults = {
+                mappings = {
+                    i = {['<C-h>'] = 'which_key', ['<esc>'] = 'close'},
+                    n = {
+                        ['<C-]>'] = 'move_selection_next',
+                        ['<C-[>'] = 'move_selection_previous',
+                        ['<C-h>'] = 'which_key',
+                        ['<esc>'] = 'close',
+                        ['q'] = 'close'
+                    }
+                },
+                layout_config = {vertical = {width = 0.8, height = 0.8}},
+                layout_strategy = 'vertical'
             }
-        end
+        }
     }, {
         'akinsho/git-conflict.nvim',
         dependencies = {'yorickpeterse/nvim-pqf'},
+        event = 'VeryLazy',
         config = true
     }, {
         'folke/which-key.nvim',
@@ -211,6 +208,13 @@ return {
                 function()
                     require('which-key').show({global = false})
                 end,
+                desc = 'Buffer Local Keymaps (which-key)'
+            }, {
+                '<C-h>',
+                function()
+                    require('which-key').show({global = true})
+                end,
+                mode = {'n', 'i'},
                 desc = 'Buffer Local Keymaps (which-key)'
             }
         }

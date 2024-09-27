@@ -206,11 +206,9 @@ return {
             default = true
         }
     }, { -- show code context in status line
-        'SmiteshP/nvim-navic',
-        name = 'nvim-navic'
+        'SmiteshP/nvim-navic'
     }, { -- show diagnostic messages from lsp in status line
         'nvim-lua/lsp-status.nvim',
-        name = 'lsp-status',
         dependencies = {'nvim-lspconfig'},
         config = function()
             local lsp_status = require('lsp-status')
@@ -226,7 +224,7 @@ return {
         end
     }, { -- status line
         'nvim-lualine/lualine.nvim',
-        dependencies = {'nvim-web-devicons', 'nvim-navic', 'lsp-status'},
+        dependencies = {'nvim-web-devicons', 'nvim-navic', 'lsp-status.nvim'},
         event = 'VeryLazy',
         init = function()
             vim.g.lualine_laststatus = vim.o.laststatus
@@ -401,6 +399,7 @@ return {
     }, { -- git diff view
         'sindrets/diffview.nvim',
         dependencies = {'nvim-web-devicons'},
+        cmd = {'DiffviewToggleFiles', 'DiffviewFileHistory'},
         config = setup_diffview
     }
 }

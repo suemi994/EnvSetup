@@ -282,6 +282,10 @@ while true; do
 			setup_python
 			break
 			;;
+        "lua")
+            setup_lua
+            break;
+            ;;
 		"all")
 			setup_env
 			setup_zsh
@@ -291,6 +295,8 @@ while true; do
 			setup_rust
 			setup_golang
 			setup_python
+            setup_lua
+            setup_nvim
 			break
 			;;
 		*)
