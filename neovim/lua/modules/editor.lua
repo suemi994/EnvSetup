@@ -3,6 +3,7 @@ return {
         'nvim-lua/plenary.nvim'
     }, { -- [optional] brackets auto pair
         'steelsojka/pears.nvim',
+		enabled = false,
         event = 'LazyFile',
         config = function() require('pears').setup() end
     }, { -- [optional] delete neovim buffers without losing window layout

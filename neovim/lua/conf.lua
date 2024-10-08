@@ -23,6 +23,7 @@ vim.opt.rtp:prepend(lazypath)
 local opt = vim.opt
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
+opt.signcolumn = 'yes'
 opt.termguicolors = true
 opt.laststatus = 3
 opt.number = true
