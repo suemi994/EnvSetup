@@ -120,11 +120,11 @@ setup_nvim () {
 		echo "Neovim already installed, skip..."
 		return
 	fi
-	cd ${ROOT_DIR}/tmp && curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-	tar -C ${ROOT_DIR}/local -xzf nvim-linux64.tar.gz && rm nvim-linux64.tar.gz
-	ln -s ${ROOT_DIR}/local/nvim-linux64/bin/nvim ${ROOT_DIR}/bin/nvim
+	#cd ${ROOT_DIR}/tmp && curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+	#tar xvzf nvim-linux-x86_64.tar.gz -C ${ROOT_DIR}/local && rm nvim-linux-x86_64.tar.gz
+	ln -s ${ROOT_DIR}/local/nvim-linux-x86_64/bin/nvim ${ROOT_DIR}/bin/nvim
 	rm -rf ${HOME}/.config/nvim && ln -s ${CUR_DIR}/neovim ${HOME}/.config/nvim
-	echo "Setup Neovim: please enter nvim && execute :PlugInstall && :TSInstallSync lua && :TsInstallSync vimdoc..."
+	echo "Setup Neovim: please enter nvim && execute :LazyInstall"
 }
 
 setup_lua() {
@@ -190,7 +190,7 @@ setup_rust () {
 	${CARGO_HOME}/bin/rustup default stable
 	${CARGO_HOME}/bin/rustup component add rust-analyzer
 	rustup --version > /dev/null 2>&1
-	if [ $? -gt 0]; then
+	if [ $? -gt 0 ]; then
 		echo "Rust Setup: add binary tool into PATH variable..."
 		echo "export CARGO_HOME=${CARGO_HOME}" >> ${HOME}/.zshrc
 		echo "export RUSTUP_HOME=${RUSTUP_HOME}" >> ${HOME}/.zshrc
