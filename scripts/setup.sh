@@ -10,7 +10,7 @@ setup_env () {
 	sudo apt-get update -y 
 	sudo apt-get install net-tools curl build-essential libtool automake -y && \
 	sudo apt-get install tree fd-find ripgrep zsh tmux proxychains4 -y && \
-	sudo apt-get install gcc g++ clang clangd llvm cmake ninja-build -y && \
+	sudo apt-get install gcc g++ clang clangd clang-tidy llvm cmake ninja-build -y && \
 	sudo apt-get install python3-pip
 
 	echo "Setup Env: Build directories under ${ROOT_DIR} ..."
@@ -169,6 +169,11 @@ setup_cpp () {
 	if [ $? -gt 0 ]; then
 		echo "Cpp Setup: clangd not found, try install..."
 		sudo apt-get install clangd -y
+	fi
+	clang-tidy --version > /dev/null 2>&1
+	if [ $? -gt 0 ]; then
+		echo "Cpp Setup: clang-tidy not found, try install..."
+		sudo apt-get install clang-tidy -y
 	fi
 	if [ ! -f "$HOME/.config/clangd/config.yaml" ]; then
 		mkdir -p $HOME/.config/clangd
