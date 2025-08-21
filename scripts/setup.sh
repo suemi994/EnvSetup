@@ -162,6 +162,7 @@ setup_cpp () {
 	if [ $? -eq 0 ]; then
 		echo "Cpp Setup: install make tools: cmake, ninja, automake"
 		sudo apt-get install automake cmake ninja-build -y
+		sudo snap install --edge cmake-language-server
 	fi
 
 	echo "Cpp Setup: check lsp server"
@@ -240,6 +241,7 @@ setup_python () {
 	check_installed "python3-pylsp"
 	if [ $? -eq 0 ]; then
 		echo "Setup Python: pylsp not found, try install..."
+		sudo apt-get install python3-pylsp
 	fi
 	echo "Setup python finished, enjoy yourself..."
 }

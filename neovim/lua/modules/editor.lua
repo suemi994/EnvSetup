@@ -329,7 +329,13 @@ return {
                 end,
                 mode = {'n', 'i'},
                 desc = 'Buffer Local Keymaps (which-key)'
+            }, {
+                'Civitasv/cmake-tools.nvim',
+		        dependencies = { 'nvim-lua/plenary.nvim' },
+		        opts = {}
             }
+	}
+
         }
     }
 }

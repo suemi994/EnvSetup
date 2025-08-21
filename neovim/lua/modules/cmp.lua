@@ -22,6 +22,7 @@ local lsp_sources = {
             }
         }
     },
+    ['cmake'] = {opt = true, need_require = false, setup_args = {}},
     ['codeium'] = {opt = false, need_require = true, setup_args = {}}
 }
 
