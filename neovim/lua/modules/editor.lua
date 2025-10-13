@@ -245,11 +245,17 @@ return {
                 noremap = true,
                 desc = 'Fuzzy search symbols in current buffer'
             }, {
-                '<leader>s',
-                '<cmd>:lua require("telescope.builtin").lsp_document_symbols({prompt_prefix = "", default_text = ":method:"})<cr>',
+                '<leader>m',
+                '<cmd>:lua require("telescope.builtin").lsp_document_symbols({symbols = {"method", "function", "constructor"}})<cr>',
                 silent = true,
                 noremap = true,
-                desc = 'Find symbols with filters in current buffer'
+                desc = 'Find function symbols with filters in current buffer'
+            }, {
+                '<leader>s',
+                '<cmd>:lua require("telescope.builtin").lsp_document_symbols({symbols = {"interface", "class", "struct"}})<cr>',
+                silent = true,
+                noremap = true,
+                desc = 'Find struct symbols with filters in current buffer'
             }, {
                 'gf',
                 '<cmd>Telescope grep_string<cr>',

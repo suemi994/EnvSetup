@@ -65,5 +65,21 @@ return {
                 ft = {'markdown', 'Avante'}
             }
         }
+    }, {
+        'greggh/claude-code.nvim',
+        event = 'VeryLazy',
+        enabled = true,
+        dependencies = {
+            "nvim-lua/plenary.nvim", -- Required for git operations
+        },
+        config = function()
+            require('claude-code').setup({
+                window = {
+                    split_ratio = 0.5
+                },
+                git = { use_git_root = true },
+                command = 'claude'
+            })
+        end
     }
 }
