@@ -74,11 +74,18 @@ return {
         },
         config = function()
             require('claude-code').setup({
-                window = {
-                    split_ratio = 0.5
-                },
+                window = {position = "vertical", split_ratio = 0.5},
                 git = { use_git_root = true },
-                command = 'claude'
+                command = 'ccr code',
+                command_variants = {
+                    continue = "--continue",
+                    resume = "--resume"
+                },
+                keymaps = {
+                    toggle = {normal = "<C-a>", terminal = "<C-a>"},
+                    window_navigation = true
+                }
+
             })
         end
     }

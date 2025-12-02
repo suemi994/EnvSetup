@@ -111,3 +111,6 @@ alias co='git checkout'
 alias gstat='git status'
 alias glog='git log'
 alias gbranch='git branch'
+
+# 如果不在 tmux 里，就 attach 已有会话；没有则新建
+[ -z "$TMUX" ] && exec tmux new-session -A -s main
