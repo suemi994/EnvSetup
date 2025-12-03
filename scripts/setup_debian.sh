@@ -246,6 +246,250 @@ setup_python () {
 	echo "Setup python finished, enjoy yourself..."
 }
 
+setup_claude () {
+	echo "Setup Claude: check dependencies..."
+
+	# Check and install Node.js if needed
+	node --version > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Setup Claude: Node.js not found, installing Node.js..."
+		check_installed "nodejs"
+		if [ $? -eq 0 ]; then
+			sudo apt-get update
+			sudo apt-get install -y nodejs
+		fi
+		node --version > /dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			echo "Setup Claude: Failed to install Node.js, please install manually..."
+			return
+		fi
+	else
+		echo "Setup Claude: Node.js already installed, skipping..."
+	fi
+
+	# Check and install npm if needed
+	npm --version > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Setup Claude: npm not found, installing npm..."
+		check_installed "npm"
+		if [ $? -eq 0 ]; then
+			sudo apt-get update
+			sudo apt-get install -y npm
+		fi
+		npm --version > /dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			echo "Setup Claude: Failed to install npm, please install manually..."
+			return
+		fi
+	else
+		echo "Setup Claude: npm already installed, skipping..."
+	fi
+
+    sudo npm install -g @anthropic-ai/claude-code
+    sudo npm install -g @musistudio/claude-code-router
+    sudo npm install -g ccusage   
+
+	echo "Setup Claude: creating directories..."
+	mkdir -p "$HOME/.claude/skills"
+	mkdir -p "$HOME/.claude/mcp"
+
+	echo "Setup Claude: creating configuration templates..."
+	# Create claude-code-router config template
+	local ROUTER_TEMPLATE="${CUR_DIR}/claude/claude-code-router.json.template"
+	local ROUTER_CONFIG="$HOME/.claude-code-router/config.json"
+
+	if [ -f "$ROUTER_TEMPLATE" ]; then
+		mkdir -p "$(dirname "$ROUTER_CONFIG")"
+		cp "$ROUTER_TEMPLATE" "$ROUTER_CONFIG"
+
+		# Replace placeholders with environment variables
+		if [ ! -z "$DASHSCOPE_API_KEY" ]; then
+			sed -i "s/<DASHSCOPE_API_KEY>/$DASHSCOPE_API_KEY/g" "$ROUTER_CONFIG"
+		fi
+		if [ ! -z "$GLM_API_KEY" ]; then
+			sed -i "s/<GLM_API_KEY>/$GLM_API_KEY/g" "$ROUTER_CONFIG"
+		fi
+		if [ ! -z "$MINIMAX_API_KEY" ]; then
+			sed -i "s/<MINIMAX_API_KEY>/$MINIMAX_API_KEY/g" "$ROUTER_CONFIG"
+		fi
+
+		chmod 600 "$ROUTER_CONFIG"
+		echo "Setup Claude: claude-code-router template created at $ROUTER_CONFIG"
+	fi
+
+	# Create environment variables file directly
+	local ENV_CONFIG="$HOME/.claude/env.sh"
+
+	if [ -f "$ENV_CONFIG" ]; then
+		echo "Setup Claude: environment file already exists at $ENV_CONFIG"
+	else
+		# Create environment file with actual values if variables are set
+		echo "# Claude Environment Variables" > "$ENV_CONFIG"
+		if [ ! -z "$DASHSCOPE_API_KEY" ]; then
+			echo "export DASHSCOPE_API_KEY=\"$DASHSCOPE_API_KEY\"" >> "$ENV_CONFIG"
+		fi
+		if [ ! -z "$GLM_API_KEY" ]; then
+			echo "export GLM_API_KEY=\"$GLM_API_KEY\"" >> "$ENV_CONFIG"
+		fi
+		if [ ! -z "$BRAVE_SEARCH_API_KEY" ]; then
+			echo "export BRAVE_SEARCH_API_KEY=\"$BRAVE_SEARCH_API_KEY\"" >> "$ENV_CONFIG"
+		fi
+		if [ ! -z "$GITHUB_TOKEN" ]; then
+			echo "export GITHUB_TOKEN=\"$GITHUB_TOKEN\"" >> "$ENV_CONFIG"
+		fi
+		if [ ! -z "$MINIMAX_API_KEY" ]; then
+			echo "export MINIMAX_API_KEY=\"$MINIMAX_API_KEY\"" >> "$ENV_CONFIG"
+		fi
+
+		chmod +x "$ENV_CONFIG"
+		echo "Setup Claude: environment file created at $ENV_CONFIG"
+	fi
+
+	echo "Setup Claude: installing common MCP servers..."
+	# Install common MCP servers
+	sudo npm install -g @modelcontextprotocol/server-filesystem 2>/dev/null || echo "Setup Claude: filesystem server installation failed"
+	sudo npm install -g @brave/brave-search-mcp-server 2>/dev/null || echo "Setup Claude: brave-search server installation failed"
+	sudo npm install -g octocode-mcp 2>/dev/null || echo "Setup Claude: github server installation failed"
+	sudo npm install -g @modelcontextprotocol/server-sequential-thinking 2>/dev/null || echo "Setup Claude: sequential-thinking server installation failed"
+	sudo npm install -g @modelcontextprotocol/inspector 2>/dev/null || echo "Setup Claude: inspector server installation failed"
+
+	echo "Setup Claude: installing common skills..."
+	# Install common skills
+	sudo npm install -g document-skills@anthropic-agent-skills 2>/dev/null || echo "Setup Claude: document-skills installation failed"
+	sudo npm install -g example-skills@anthropic-agent-skills 2>/dev/null || echo "Setup Claude: example-skills installation failed"
+	sudo npm install -g claude-mermaid@claude-mermaid 2>/dev/null || echo "Setup Claude: claude-mermaid installation failed"
+
+	echo "Setup Claude: creating symlinks for local components..."
+	# Scan and symlink skills
+	if [ -d "${CUR_DIR}/claude/skills" ]; then
+		for skill_dir in "${CUR_DIR}/claude/skills"/*; do
+			if [ -d "$skill_dir" ]; then
+				skill_name=$(basename "$skill_dir")
+				ln -sf "$skill_dir" "$HOME/.claude/skills/$skill_name"
+				echo "Setup Claude: linked skill $skill_name"
+			fi
+		done
+	fi
+
+	# Scan and symlink mcp servers
+	if [ -d "${CUR_DIR}/claude/mcp" ]; then
+		for mcp_dir in "${CUR_DIR}/claude/mcp"/*; do
+			if [ -d "$mcp_dir" ]; then
+				mcp_name=$(basename "$mcp_dir")
+				ln -sf "$mcp_dir" "$HOME/.claude/mcp/$mcp_name"
+				echo "Setup Claude: linked MCP server $mcp_name"
+			fi
+		done
+	fi
+
+	# Add environment variables to .zshrc if not already present
+	if [ -f "$ENV_CONFIG" ]; then
+		local claude_env=$(grep "# Claude Environment Variables" "$HOME/.zshrc" | wc -l)
+		if [ $claude_env -eq 0 ]; then
+			echo "" >> "$HOME/.zshrc"
+			echo "# Claude Environment Variables - source $ENV_CONFIG" >> "$HOME/.zshrc"
+			echo "[ -f \"$ENV_CONFIG\" ] && source \"$ENV_CONFIG\"" >> "$HOME/.zshrc"
+			echo "Setup Claude: environment variables added to .zshrc"
+		fi
+	fi
+
+	echo "Setup Claude: verification..."
+	# Verify MCP servers
+	local mcp_count=$(npm list -g 2>/dev/null | grep -E "@modelcontextprotocol|@brave|octocode-mcp|claude-mermaid" | wc -l)
+	echo "Setup Claude: $mcp_count MCP/skill packages installed"
+
+	# Verify symlinks
+	local skill_links=$(ls -la "$HOME/.claude/skills" 2>/dev/null | grep "^l" | wc -l)
+	local mcp_links=$(ls -la "$HOME/.claude/mcp" 2>/dev/null | grep "^l" | wc -l)
+	echo "Setup Claude: $skill_links skill symlinks, $mcp_links MCP symlinks created"
+
+	echo "Setup Claude finished! Configure your API keys in $ENV_CONFIG"
+}
+
+setup_docker () {
+	echo "Setup Docker: check dependencies..."
+
+	# Check if docker and docker-compose are installed
+	docker --version > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Setup Docker: Docker not found, installing Docker and docker-compose..."
+		check_installed "docker-ce"
+		if [ $? -eq 0 ]; then
+			sudo apt-get update
+			sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+			sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker.gpg
+			sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+			sudo apt-get update
+			sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+			sudo systemctl start docker
+			sudo systemctl enable docker
+		fi
+		docker --version > /dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			echo "Setup Docker: Failed to install Docker, please install manually..."
+			return
+		fi
+	else
+		echo "Setup Docker: Docker already installed, skipping..."
+	fi
+
+	# Add current user to docker group
+	if [ "$(id -gn)" != "docker" ]; then
+		echo "Setup Docker: adding user to docker group..."
+		sudo usermod -aG docker $USER
+		echo "Setup Docker: Please log out and log back in for group changes to take effect"
+	fi
+
+	# Create system docker directories
+	echo "Setup Docker: creating directories..."
+	sudo mkdir -p /home/docker/{data,image,compose}
+
+	# Create docker daemon configuration
+	echo "Setup Docker: creating/updating daemon configuration..."
+	sudo mkdir -p /etc/docker
+
+	# Always ensure our data-root configuration is set
+	if [ -f "/etc/docker/daemon.json" ]; then
+		# Update existing configuration to ensure data-root is set
+		sudo sed -i 's|"data-root":.*|"data-root": "/home/docker/data"|g' /etc/docker/daemon.json
+	else
+		# Create new configuration with our data-root
+		sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+{
+  "data-root": "/home/docker/data",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+	fi
+
+	sudo systemctl restart docker
+
+	# Add docker aliases to .zshrc if not already present
+	local docker_aliases=$(grep "# Docker Aliases" "$HOME/.zshrc" | wc -l)
+	if [ $docker_aliases -eq 0 ]; then
+		echo "" >> "$HOME/.zshrc"
+		echo "# Docker Aliases" >> "$HOME/.zshrc"
+		echo "alias dps='docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\"'" >> "$HOME/.zshrc"
+		echo "alias dlogs='docker logs -f'" >> "$HOME/.zshrc"
+		echo "alias dstop='docker stop \$(docker ps -q)'" >> "$HOME/.zshrc"
+		echo "alias drm='docker rm \$(docker ps -aq)'" >> "$HOME/.zshrc"
+		echo "alias dcu='docker-compose up -d'" >> "$HOME/.zshrc"
+		echo "alias dcd='docker-compose down'" >> "$HOME/.zshrc"
+		echo "alias dcl='docker-compose logs -f'" >> "$HOME/.zshrc"
+		echo "Setup Docker: aliases added to .zshrc"
+	fi
+
+	echo "Setup Docker: verification..."
+	docker --version
+	docker-compose --version
+	echo "Setup Docker finished! Docker data directory: $HOME/docker-data"
+}
+
 if [ -z $ROOT_DIR ]; then
 	ROOT_DIR="$HOME"
 fi
@@ -293,6 +537,14 @@ while true; do
             setup_lua
             break;
             ;;
+		"claude")
+			setup_claude
+			break
+			;;
+		"docker")
+			setup_docker
+			break
+			;;
 		"all")
 			setup_env
 			setup_zsh
@@ -304,12 +556,14 @@ while true; do
 			setup_python
             setup_lua
             setup_nvim
+			setup_claude
+			setup_docker
 			break
 			;;
 		*)
 			echo -e "Usage:"
 			echo -e "	ROOT_DIR=\${ROOT_DIR} bash setup.sh \${command}"
-			echo -e "	Support commands: env, zsh, tmux, vpn, cpp, rust, golang, python, all"
+			echo -e "	Support commands: env, zsh, tmux, vpn, cpp, rust, golang, python, lua, claude, docker, all"
 			exit 1
 			;;
 	esac

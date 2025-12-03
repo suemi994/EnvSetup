@@ -1,0 +1,35 @@
+{
+  "LOG": false,
+  "Providers": [
+    {
+      "name": "dashscope",
+      "api_base_url": "https://dashscope.aliyuncs.com/apps/anthropic",
+      "api_key": "<DASHSCOPE_API_KEY>",
+      "models": [
+        "qwen3-coder-plus",
+        "qwen3-coder-flash"
+      ]
+    },
+    {
+      "name": "GLM",
+      "api_base_url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "api_key": "<GLM_API_KEY>",
+      "models": [
+        "glm-4.6",
+        "glm-4.5",
+        "glm-4.5-air"
+      ]
+    },{
+      "name": "MiniMax",
+      "api_base_url": "https://api.minimaxi.com/anthropic",
+      "api_key": "<MINIMAX_API_KEY>",
+      "models": ["MiniMax-M2"]
+    },
+  ],
+  "Router": {
+    "default": "GLM,glm-4.5",
+    "think": "GLM,glm-4.6",
+    "background": "GLM,glm-4.5-air",
+    "longContext": "GLM,glm-4.5"
+  }
+}
