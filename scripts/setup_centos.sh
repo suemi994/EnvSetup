@@ -262,42 +262,46 @@ setup_python () {
 	echo "Setup python finished, enjoy yourself..."
 }
 
-setup_claude () {
-	echo "Setup Claude: check dependencies..."
+setup_nodejs () {
+	echo "Setup Node.js: check dependencies..."
 
 	# Check and install Node.js if needed
 	node --version > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
-		echo "Setup Claude: Node.js not found, installing Node.js..."
+		echo "Setup Node.js: Node.js not found, installing Node.js..."
 		check_installed "nodejs"
 		if [ $? -eq 0 ]; then
 			sudo dnf install -y nodejs
 		fi
 		node --version > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
-			echo "Setup Claude: Failed to install Node.js, please install manually..."
+			echo "Setup Node.js: Failed to install Node.js, please install manually..."
 			return
 		fi
 	else
-		echo "Setup Claude: Node.js already installed, skipping..."
+		echo "Setup Node.js: Node.js already installed, skipping..."
 	fi
 
 	# Check and install npm if needed
 	npm --version > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
-		echo "Setup Claude: npm not found, installing npm..."
+		echo "Setup Node.js: npm not found, installing npm..."
 		check_installed "npm"
 		if [ $? -eq 0 ]; then
 			sudo dnf install -y npm
 		fi
 		npm --version > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
-			echo "Setup Claude: Failed to install npm, please install manually..."
+			echo "Setup Node.js: Failed to install npm, please install manually..."
 			return
 		fi
 	else
-		echo "Setup Claude: npm already installed, skipping..."
+		echo "Setup Node.js: npm already installed, skipping..."
 	fi
+}
+
+setup_claude () {
+	echo "Setup Claude: check dependencies..."
 
     sudo npm install -g @anthropic-ai/claude-code
     sudo npm install -g @musistudio/claude-code-router
@@ -548,6 +552,10 @@ while true; do
             setup_lua
             break;
             ;;
+		"nodejs")
+			setup_nodejs
+			break
+			;;
 		"claude")
 			setup_claude
 			break
@@ -567,6 +575,7 @@ while true; do
 			setup_python
             setup_lua
             setup_nvim
+			setup_nodejs
 			setup_claude
 			setup_docker
 			break
@@ -574,7 +583,7 @@ while true; do
 		*)
 			echo -e "Usage:"
 			echo -e "	ROOT_DIR=\${ROOT_DIR} bash setup.sh \${command}"
-			echo -e "	Support commands: env, zsh, tmux, vpn, cpp, rust, golang, python, lua, claude, docker, all"
+			echo -e "	Support commands: env, zsh, tmux, vpn, cpp, rust, golang, python, lua, nodejs, claude, docker, all"
 			exit 1
 			;;
 	esac
