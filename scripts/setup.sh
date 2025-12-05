@@ -541,11 +541,16 @@ setup_claude() {
 
     echo "Setup Claude: installing common MCP servers..."
     # Install common MCP servers
-    npm install -g @modelcontextprotocol/server-filesystem 2>/dev/null || echo "Setup Claude: filesystem server installation failed"
-    npm install -g @brave/brave-search-mcp-server 2>/dev/null || echo "Setup Claude: brave-search server installation failed"
-    npm install -g octocode-mcp 2>/dev/null || echo "Setup Claude: github server installation failed"
-    npm install -g @modelcontextprotocol/server-sequential-thinking 2>/dev/null || echo "Setup Claude: sequential-thinking server installation failed"
-    npm install -g @modelcontextprotocol/inspector 2>/dev/null || echo "Setup Claude: inspector server installation failed"
+    if npm install -g claude-mermaid 2>/dev/null; then
+        claude mcp add --scope user mermaid claude-mermaid
+    else
+        echo "Setup Cluade: mermaid mcp server installation failed"
+    fi
+    if npm install -g octocode-mcp 2>/dev/null; then
+        claude mcp add --scope user octocode npx octocode-mcp@latest
+    else
+        echo "Setup Claude: github server installation failed"
+    fi
 
     echo "Setup Claude: creating symlinks for local components..."
     # Define component directories array
