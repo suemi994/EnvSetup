@@ -33,14 +33,14 @@ function setup_lsp(_, opts)
             navic.attach(client, bufnr)
         end
     end
-    local nvim_lsp = require('lspconfig')
     for source, conf in pairs(opts) do
         if conf.opt then
             if conf.need_require then
                 require(source).setup(conf.setup_args)
             else
                 conf.setup_args['on_attach'] = on_attach
-                nvim_lsp[source].setup(conf.setup_args)
+		vim.lsp.config(source, conf.setup_args)
+		vim.lsp.enable(source)
             end
         end
     end
