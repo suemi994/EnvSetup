@@ -459,30 +459,18 @@ setup_nodejs() {
     echo "Setup Node.js: check dependencies..."
 
     # Check and install Node.js if needed
-    if ! command -v node >/dev/null 2>&1; then
-        echo "Setup Node.js: Node.js not found, installing Node.js..."
-        install_if_not_found "nodejs"
-
-        if ! command -v node >/dev/null 2>&1; then
-            echo "Setup Node.js: Failed to install Node.js, please install manually..."
-            return
-        fi
-    else
-        echo "Setup Node.js: Node.js already installed, skipping..."
+    if command -v nvm > /dev/null 2>&1; then
+        echo "Setup Node.js: already installed, skipping..."
+        return
     fi
-
-    # Check and install npm if needed
-    if ! command -v npm >/dev/null 2>&1; then
-        echo "Setup Node.js: npm not found, installing npm..."
-        install_if_not_found "npm"
-
-        if ! command -v npm >/dev/null 2>&1; then
-            echo "Setup Node.js: Failed to install npm, please install manually..."
-            return
-        fi
-    else
-        echo "Setup Node.js: npm already installed, skipping..."
+    local nvm_tag=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r .tag_name)
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_tag}/install.sh | bash
+    if [ $? -ne 0 ]; then
+        echo "Setup Node.js: install nvm failed!"
     fi
+    source $HOME/.zshrc
+    nvm install --lts
+    nvm use --lts
 }
 
 setup_claude() {
@@ -491,9 +479,9 @@ setup_claude() {
     # Ensure Node.js and npm are installed
     setup_nodejs
 
-    sudo npm install -g @anthropic-ai/claude-code
-    sudo npm install -g @musistudio/claude-code-router
-    sudo npm install -g ccusage
+    npm install -g @anthropic-ai/claude-code
+    npm install -g @musistudio/claude-code-router
+    npm install -g ccusage
 
     echo "Setup Claude: creating directories..."
     mkdir -p "$HOME/.claude/skills"
@@ -553,40 +541,31 @@ setup_claude() {
 
     echo "Setup Claude: installing common MCP servers..."
     # Install common MCP servers
-    sudo npm install -g @modelcontextprotocol/server-filesystem 2>/dev/null || echo "Setup Claude: filesystem server installation failed"
-    sudo npm install -g @brave/brave-search-mcp-server 2>/dev/null || echo "Setup Claude: brave-search server installation failed"
-    sudo npm install -g octocode-mcp 2>/dev/null || echo "Setup Claude: github server installation failed"
-    sudo npm install -g @modelcontextprotocol/server-sequential-thinking 2>/dev/null || echo "Setup Claude: sequential-thinking server installation failed"
-    sudo npm install -g @modelcontextprotocol/inspector 2>/dev/null || echo "Setup Claude: inspector server installation failed"
-
-    echo "Setup Claude: installing common skills..."
-    # Install common skills
-    sudo npm install -g document-skills@anthropic-agent-skills 2>/dev/null || echo "Setup Claude: document-skills installation failed"
-    sudo npm install -g example-skills@anthropic-agent-skills 2>/dev/null || echo "Setup Claude: example-skills installation failed"
-    sudo npm install -g claude-mermaid@claude-mermaid 2>/dev/null || echo "Setup Claude: claude-mermaid installation failed"
+    npm install -g @modelcontextprotocol/server-filesystem 2>/dev/null || echo "Setup Claude: filesystem server installation failed"
+    npm install -g @brave/brave-search-mcp-server 2>/dev/null || echo "Setup Claude: brave-search server installation failed"
+    npm install -g octocode-mcp 2>/dev/null || echo "Setup Claude: github server installation failed"
+    npm install -g @modelcontextprotocol/server-sequential-thinking 2>/dev/null || echo "Setup Claude: sequential-thinking server installation failed"
+    npm install -g @modelcontextprotocol/inspector 2>/dev/null || echo "Setup Claude: inspector server installation failed"
 
     echo "Setup Claude: creating symlinks for local components..."
-    # Scan and symlink skills
-    if [ -d "${CUR_DIR}/claude/skills" ]; then
-        for skill_dir in "${CUR_DIR}/claude/skills"/*; do
-            if [ -d "$skill_dir" ]; then
-                skill_name=$(basename "$skill_dir")
-                ln -sf "$skill_dir" "$HOME/.claude/skills/$skill_name"
-                echo "Setup Claude: linked skill $skill_name"
-            fi
-        done
-    fi
+    # Define component directories array
+    local components=("skills" "mcp" "commands")
 
-    # Scan and symlink mcp servers
-    if [ -d "${CUR_DIR}/claude/mcp" ]; then
-        for mcp_dir in "${CUR_DIR}/claude/mcp"/*; do
-            if [ -d "$mcp_dir" ]; then
-                mcp_name=$(basename "$mcp_dir")
-                ln -sf "$mcp_dir" "$HOME/.claude/mcp/$mcp_name"
-                echo "Setup Claude: linked MCP server $mcp_name"
-            fi
-        done
-    fi
+    # Process each component type
+    for component in "${components[@]}"; do
+        local source_dir="${CUR_DIR}/claude/$component"
+        local target_dir="$HOME/.claude/$component"
+
+        if [ -d "$source_dir" ]; then
+            for item_dir in "$source_dir"/*; do
+                if [ -d "$item_dir" ]; then
+                    item_name=$(basename "$item_dir")
+                    ln -sf "$item_dir" "$target_dir/$item_name"
+                    echo "Setup Claude: linked $component component $item_name"
+                fi
+            done
+        fi
+    done
 
     # Add environment variables to .zshrc if not already present
     if [ -f "$ENV_CONFIG" ]; then
