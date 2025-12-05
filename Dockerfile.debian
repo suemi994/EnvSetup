@@ -1,0 +1,25 @@
+# Dockerfile for testing setup script on Debian
+FROM debian:bullseye
+
+# Install sudo and create test user with sudo privileges
+RUN apt-get update && apt-get install -y sudo && \
+    useradd -m -s /bin/bash testuser && \
+    echo "testuser:testuser" | chpasswd && \
+    echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Copy backup directory to container
+COPY . /home/testuser/backup
+
+# Set execute permissions and ownership
+RUN chown -R testuser:testuser /home/testuser/backup && \
+    chmod +x /home/testuser/backup/scripts/setup.sh
+
+# Switch to testuser
+USER testuser
+WORKDIR /home/testuser
+
+# Set environment variables
+ENV ROOT_DIR=/home/testuser
+
+# Default command
+CMD ["/bin/bash"]

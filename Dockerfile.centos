@@ -1,0 +1,28 @@
+# Dockerfile for testing setup script
+FROM tgagor/centos:stream10
+
+# Set working directory
+WORKDIR /root
+
+# Install sudo and create test user with sudo privileges
+RUN dnf install -y sudo && \
+    useradd -m -s /bin/bash testuser && \
+    echo "testuser:testuser" | chpasswd && \
+    echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Copy backup directory to container
+COPY . /home/testuser/backup
+
+# Set execute permissions and ownership
+RUN chown -R testuser:testuser /home/testuser/backup && \
+    chmod +x /home/testuser/backup/scripts/setup.sh
+
+# Switch to testuser
+USER testuser
+WORKDIR /home/testuser
+
+# Set environment variables
+ENV ROOT_DIR=/home/testuser
+
+# Default command
+CMD ["/bin/bash"]
