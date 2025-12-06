@@ -401,6 +401,7 @@ setup_rust() {
         echo "export RUSTUP_HOME=${RUSTUP_HOME}" >> ${HOME}/.zshrc
         echo -e "export PATH=\"\$PATH:\${CARGO_HOME}/bin\"" >> ${HOME}/.zshrc
     fi
+    ${CARGO_HOME}/bin/cargo install ast-grep --locked
     echo "Setup rust finished, enjoy yourself..."
 }
 
@@ -432,11 +433,11 @@ setup_golang() {
 }
 
 setup_python() {
-    if ! command -v pip3 >/dev/null 2>&1; then
-        echo "Python Setup: pip not found, try install it..."
-        install_if_not_found "python3-pip"
-        sudo python3 -m ensurepip --upgrade 2>/dev/null || true
-        sudo python3 -m pip install -U pip setuptools wheel 2>/dev/null || true
+    if ! command -v uv >/dev/null; then
+        echo "Python Setup: uv not found, try install it..."
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        sudo $HOME/.local/bin/uv pip install --upgrade pip --system
+        python3 -m pip install setuptools wheel
     fi
 
     local distro=$(detect_distribution)
@@ -471,6 +472,99 @@ setup_nodejs() {
     source $HOME/.zshrc
     nvm install --lts
     nvm use --lts
+}
+
+setup_mcp() {
+    echo "Setup MCP: installing MCP servers for specified agents..."
+    # Ensure Node.js and npm are installed
+    setup_nodejs
+    mkdir -p "$ROOT_DIR/local/mcp"
+
+    if npm install -g claude-mermaid 2>/dev/null; then
+        for agent in "$@"; do
+            case $agent in
+                "claude")
+                    claude mcp add --scope user mermaid claude-mermaid
+                    echo "Setup MCP: mermaid server installed for Claude"
+                    ;;
+                *)
+                    echo "Setup MCP: unknown agent '$agent', skip mermaid"
+                    ;;
+        done
+    else
+        echo "Setup MCP: mermaid server installation failed"
+    fi
+    
+    if npm install -g @probelabs/probe 2>/dev/null; then
+        for agent in "$@"; do
+            case $agent in
+                "claude")
+                    claude mcp add --scope user probe-search npx @probelabs/probe mcp
+                    echo "Setup MCP: probe search server installed for Claude"
+                    ;;
+                *)
+                    echo "Setup MCP: unknown agent '$agent', skip probe search"
+                    ;;
+        done
+    else
+        echo "Setup MCP: probe search server installation failed"
+    fi
+
+    if npm install -g octocode-mcp 2>/dev/null; then
+        for agent in "$@"; do
+            case $agent in
+                "claude")
+                    claude mcp add --scope user octocode npx octocode-mcp@latest
+                    echo "Setup MCP: github server installed for Claude"
+                    ;;
+                *)
+                    echo "Setup MCP: unknown agent '$agent', skip github server"
+                    ;;
+        done
+    else
+        echo "Setup MCP: github server installation failed"
+   fi
+
+    local source_dir="${CUR_DIR}/mcp"
+    local target_dir="$ROOT_DIR/local/mcp"
+    mkdir -p $target_dir
+
+    if [ -d "$source_dir" ]; then
+        for item_dir in "$source_dir"/*; do
+            if [ -d "$item_dir" ]; then
+                item_name=$(basename "$item_dir")
+                ln -sf "$item_dir" "$target_dir/$item_name"
+                echo "Setup MCP: linked mcp server $item_name"
+            fi
+        done
+    fi
+
+    if ! command -v ast-grep >/dev/nul 2>&1; then
+        cargo install ast-grep --locked
+    fi
+    if git clone https://github.com/ast-grep/ast-grep-mcp.git $target_dir/ast-grep; then
+        cd $target_dir/ast-grep && uv sync
+        for agent in "$@"; do
+            case $agent in
+                "claude")
+                    local json=$(jq -n --arg dir "$target_dir/ast-grep" \
+                    '{
+                        "type": "stdio",
+                        "command": "uv",
+                        "args": ["--directory", $dir, "run", "main.py"],
+                        "env": {}
+                    }')
+                    claude mcp add-json --scope user ast-grep $json
+                    echo "Setup MCP: ast-grep server installed for Claude"
+                    ;;
+                *)
+                    echo "Setup MCP: unknown agent '$agent', skip ast-grep server"
+                    ;;
+        done
+    else
+        echo "Setup MCP: ast-grep-mcp server installation failed"
+    fi
+    echo "Setup MCP finished!"
 }
 
 setup_claude() {
@@ -539,27 +633,18 @@ setup_claude() {
         echo "Setup Claude: environment file created at $ENV_CONFIG"
     fi
 
-    echo "Setup Claude: installing common MCP servers..."
-    # Install common MCP servers
-    if npm install -g claude-mermaid 2>/dev/null; then
-        claude mcp add --scope user mermaid claude-mermaid
-    else
-        echo "Setup Cluade: mermaid mcp server installation failed"
-    fi
-    if npm install -g octocode-mcp 2>/dev/null; then
-        claude mcp add --scope user octocode npx octocode-mcp@latest
-    else
-        echo "Setup Claude: github server installation failed"
-    fi
+    # Call setup_mcp for Claude agent
+    setup_mcp claude
 
     echo "Setup Claude: creating symlinks for local components..."
     # Define component directories array
-    local components=("skills" "mcp" "commands")
+    local components=("skills" "commands")
 
     # Process each component type
     for component in "${components[@]}"; do
         local source_dir="${CUR_DIR}/claude/$component"
         local target_dir="$HOME/.claude/$component"
+        mkdir -p $target_dir
 
         if [ -d "$source_dir" ]; then
             for item_dir in "$source_dir"/*; do
@@ -582,16 +667,6 @@ setup_claude() {
             echo "Setup Claude: environment variables added to .zshrc"
         fi
     fi
-
-    echo "Setup Claude: verification..."
-    # Verify MCP servers
-    local mcp_count=$(npm list -g 2>/dev/null | grep -E "@modelcontextprotocol|@brave|octocode-mcp|claude-mermaid" | wc -l)
-    echo "Setup Claude: $mcp_count MCP/skill packages installed"
-
-    # Verify symlinks
-    local skill_links=$(ls -la "$HOME/.claude/skills" 2>/dev/null | grep "^l" | wc -l)
-    local mcp_links=$(ls -la "$HOME/.claude/mcp" 2>/dev/null | grep "^l" | wc -l)
-    echo "Setup Claude: $skill_links skill symlinks, $mcp_links MCP symlinks created"
 
     echo "Setup Claude finished! Configure your API keys in $ENV_CONFIG"
 }
@@ -740,6 +815,17 @@ while true; do
             setup_nodejs
             break
             ;;
+        "mcp")
+            shift
+            if [ $# -eq 0 ]; then
+                echo "Error: mcp requires at least one agent parameter"
+                echo "Usage: bash $0 mcp <agent1> [agent2] ..."
+                echo "Supported agents: claude, mermaid, github"
+                exit 1
+            fi
+            setup_mcp "$@"
+            break
+            ;;
         "claude")
             setup_claude
             break
@@ -783,6 +869,7 @@ while true; do
             echo -e "\tpython   - Setup Python development environment"
             echo -e "\tlua      - Setup Lua development environment"
             echo -e "\tnodejs   - Setup Node.js development environment"
+            echo -e "\tmcp      - Setup MCP servers for specific agents"
             echo -e "\tclaude   - Setup Claude Code development environment"
             echo -e "\tdocker   - Setup Docker environment"
             echo -e "\tall      - Setup all components"
@@ -790,6 +877,8 @@ while true; do
             echo -e "Examples:"
             echo -e "\tROOT_DIR=\$HOME bash $0 all"
             echo -e "\tbash $0 nvim"
+            echo -e "\tbash $0 mcp claude mermaid"
+            echo -e "\tbash $0 mcp github"
             exit 1
             ;;
     esac
