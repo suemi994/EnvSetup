@@ -362,6 +362,14 @@ setup_cpp() {
         echo "Cpp Setup: clang-tidy not found, try install..."
         install_if_not_found "clang-tidy"
     fi
+    if ! command -v cmake-format > /dev/null 2>&1; then
+        echo "Cpp Setup: cmake-format not found, try install..."
+        if command -v pip3 > /dev/null 2>&1; then
+            python3 -m pip install "cmake-format"
+        else
+            echo "Cpp Setup: pip not found, skip install cmake-format..."
+        fi
+    fi
 
     if [ ! -f "$HOME/.config/clangd/config.yaml" ]; then
         mkdir -p $HOME/.config/clangd

@@ -10,7 +10,7 @@ local lsp_sources = {
                 'clangd', '--compile-commands-dir=build', '--background-index',
                 '--clang-tidy', '--all-scopes-completion',
                 '--cross-file-rename', '--pch-storage=disk',
-                '--header-insertion=iwyu', '--query-driver=/usr/bin/g++'
+                '--header-insertion=iwyu', '--query-driver=clang++'
             },
             commands = {
                 ClangdSwitchSourceHeader = {
