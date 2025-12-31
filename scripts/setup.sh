@@ -302,7 +302,7 @@ setup_lua() {
     echo "Lua Setup: check luarocks..."
     install_if_not_found "luarocks"
 
-    echo -e "export LUAROCKS_PATH=${HOME}/.luarocks" >> ${HOME}/.zshrc
+    echo -e "export LUAROCKS_HOME=${HOME}/.luarocks" >> ${HOME}/.zshrc
     echo -e "export PATH=\"\$PATH:\${LUAROCKS_HOME}/bin\"" >> ${HOME}/.zshrc
 
     luarocks install --local --server=https://luarocks.org/dev luaformatter 2>/dev/null || echo "Luaformatter installation failed, continuing..."
@@ -490,6 +490,7 @@ setup_mcp() {
                 *)
                     echo "Setup MCP: unknown agent '$agent', skip mermaid"
                     ;;
+            esac
         done
     else
         echo "Setup MCP: mermaid server installation failed"
@@ -505,6 +506,7 @@ setup_mcp() {
                 *)
                     echo "Setup MCP: unknown agent '$agent', skip probe search"
                     ;;
+            esac
         done
     else
         echo "Setup MCP: probe search server installation failed"
@@ -520,6 +522,7 @@ setup_mcp() {
                 *)
                     echo "Setup MCP: unknown agent '$agent', skip github server"
                     ;;
+            esac
         done
     else
         echo "Setup MCP: github server installation failed"
@@ -560,6 +563,7 @@ setup_mcp() {
                 *)
                     echo "Setup MCP: unknown agent '$agent', skip ast-grep server"
                     ;;
+            esac
         done
     else
         echo "Setup MCP: ast-grep-mcp server installation failed"
@@ -762,6 +766,7 @@ EOF
     echo "Setup Docker: verification..."
     docker --version
     docker-compose --version
+    newgrp docker
     echo "Setup Docker finished! Docker data directory: /home/docker/data"
 }
 

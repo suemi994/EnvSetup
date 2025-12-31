@@ -261,7 +261,23 @@ return {
         event = 'VeryLazy',
         keys = function()
             local bufferline = require('bufferline')
-            local res = {}
+            local res = {
+                {
+                    'bn',
+                    '<cmd>BufferLineMoveNext<cr>',
+                    mode = {'n'},
+                    silent = true,
+                    noremap = true,
+                    desc = 'Move buffer to next position'
+                }, {
+                    'bp',
+                    '<cmd>BufferLineMovePrev<cr>',
+                    mode = {'n'},
+                    silent = true,
+                    noremap = true,
+                    desc = 'Move buffer to prev position'
+                }
+            }
             for i = 1, 10 do
                 local j = i % 10
                 table.insert(res, {

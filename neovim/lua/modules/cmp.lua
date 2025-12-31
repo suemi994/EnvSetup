@@ -22,8 +22,7 @@ local lsp_sources = {
             }
         }
     },
-    ['cmake'] = {opt = true, need_require = false, setup_args = {}},
-    ['codeium'] = {opt = false, need_require = true, setup_args = {}}
+    ['cmake'] = {opt = true, need_require = false, setup_args = {}}
 }
 
 function setup_lsp(_, opts)
@@ -95,61 +94,9 @@ function setup_cmp()
 end
 
 function setup_rust()
-    local navic = require('nvim-navic')
-    local function on_attach(client, buffer)
-        -- ' Show diagnostic popup on cursor hover
-        local diag_float_grp = vim.api.nvim_create_augroup('DiagnosticFloat',
-                                                           {clear = true})
-        vim.api.nvim_create_autocmd('CursorHold', {
-            callback = function()
-                vim.diagnostic.open_float(nil, {focusable = false})
-            end,
-            group = diag_float_grp
-        })
-        if client.server_capabilities.documentSymbolProvider then
-            navic.attach(client, buffer)
-        end
+    vim.g.rustaceanvim = function()
+        return {}
     end
-    rt = require('rust-tools')
-    rt.setup({
-        tools = {
-            runnables = {use_telescope = true},
-            inlay_hints = {
-                auto = true,
-                show_parameter_hints = false,
-                parameter_hints_prefix = '<-',
-                other_hints_prefix = '=>'
-            }
-        },
-        -- options same as lsp hover / vim.lsp.util.open_floating_preview()
-        hover_actions = {
-
-            -- the border that is used for the hover window
-            -- see vim.api.nvim_open_win()
-            border = {
-                {'╭', 'FloatBorder'}, {'─', 'FloatBorder'},
-                {'╮', 'FloatBorder'}, {'│', 'FloatBorder'},
-                {'╯', 'FloatBorder'}, {'─', 'FloatBorder'},
-                {'╰', 'FloatBorder'}, {'│', 'FloatBorder'}
-            },
-
-            -- Maximal width of the hover window. Nil means no max.
-            max_width = nil,
-
-            -- Maximal height of the hover window. Nil means no max.
-            max_height = nil,
-
-            -- whether the hover action window gets automatically focused
-            -- default: false
-            auto_focus = false
-        },
-        server = {
-            on_attach = on_attach,
-            settings = {
-                ['rust-analyzer'] = {checkOnSave = {command = 'clippy'}}
-            }
-        }
-    })
 end
 
 return {
@@ -157,8 +104,7 @@ return {
         'neovim/nvim-lspconfig',
         version = false,
         dependencies = {
-            'nvim-navic',
-            {'Exafunction/codeium.nvim', enabled = lsp_sources['codeium'].opt}
+            'nvim-navic'
         },
         opts = lsp_sources,
         config = setup_lsp
@@ -172,11 +118,9 @@ return {
         },
         config = setup_cmp
     }, {
-        'simrat39/rust-tools.nvim',
-        version = false,
-        event = 'LazyFile',
-        ft = {'rs'},
-        dependencies = {'telescope.nvim', 'nvim-navic'},
+        'mrcjkb/rustaceanvim',
+        version = '^6', -- Recommended
+        lazy = false, -- This plugin is already lazy
         config = setup_rust
     }
 }
