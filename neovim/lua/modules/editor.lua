@@ -217,6 +217,9 @@ return {
         end
     }, { -- fuzzy finder
         'nvim-telescope/telescope.nvim',
+        dependencies = {
+            {"nvim-telescope/telescope-live-grep-args.nvim", version = "^1.0.0"}
+        },
         cmd = 'Telescope',
         event = 'VeryLazy',
         keys = {
@@ -239,12 +242,6 @@ return {
                 noremap = true,
                 desc = 'LSP references'
             }, {
-                '<leader>p',
-                '<cmd>Telescope treesitter<cr>',
-                silent = true,
-                noremap = true,
-                desc = 'Fuzzy search symbols in current buffer'
-            }, {
                 '<leader>m',
                 '<cmd>:lua require("telescope.builtin").lsp_document_symbols({symbols = {"method", "function", "constructor"}})<cr>',
                 silent = true,
@@ -257,17 +254,19 @@ return {
                 noremap = true,
                 desc = 'Find struct symbols with filters in current buffer'
             }, {
-                'gf',
-                '<cmd>Telescope grep_string<cr>',
-                mode = 'x',
-                desc = 'Grep string in current buffer'
-            }, {
                 '<C-p>',
-                '<cmd>Telescope git_files<cr>',
+                '<cmd>Telescope find_files<cr>',
                 mode = {'n', 'i'},
                 silent = true,
                 noremap = true,
-                desc = 'Search git files'
+                desc = 'Search files'
+            }, {
+                "<C-o>",
+                "<cmd>Telescope git_files<cr>",
+                mode = {"n", "i"},
+                silent = true,
+                noremap = true,
+                desc = "Search git files"
             }, {
                 '<C-b>',
                 '<cmd>Telescope buffers<cr>',
@@ -283,12 +282,12 @@ return {
                 noremap = true,
                 desc = 'Fuzzy search in current buffer'
             }, {
-                '<C-g>',
-                '<cmd>Telescope live_grep<cr>',
-                mode = {'n', 'i'},
+                "<C-g>",
+                "<cmd>:lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>",
+                mode = {"n", "i"},
                 silent = true,
                 noremap = true,
-                desc = 'Fuzzy search in whole project'
+                desc = "Live grep with extra args in whole project"
             }
         },
         opts = {
@@ -306,7 +305,36 @@ return {
                 layout_config = {vertical = {width = 0.8, height = 0.8}},
                 layout_strategy = 'vertical'
             }
-        }
+        },
+
+        config = function(_, opts)
+            local telescope = require("telescope")
+            telescope.setup(opts)
+            telescope.load_extension("live_grep_args")
+        end
+    }, {
+        "ibhagwan/fzf-lua",
+        -- optional for icon support
+        dependencies = {"nvim-tree/nvim-web-devicons"},
+        ---@module "fzf-lua"
+        ---@type fzf-lua.Config|{}
+        ---@diagnostic disable: missing-fields
+        event = 'VeryLazy',
+        keys = {
+            {
+                "<leader>p",
+                "<cmd>FzfLua treesitter<cr>",
+                silent = true,
+                noremap = true,
+                desc = "Fuzzy search symbols in current buffer"
+            }
+        },
+        opt = {winopts = {backdrop = 0}},
+        config = function(_, opts)
+            require('fzf-lua').setup(opts)
+            vim.api.nvim_set_hl(0, "FzfLuaBackdrop", {bg = "none"})
+        end
+        ---@diagnostic enable: missing-fields
     }, {
         'akinsho/git-conflict.nvim',
         dependencies = {
@@ -335,12 +363,12 @@ return {
                 end,
                 mode = {'n', 'i'},
                 desc = 'Buffer Local Keymaps (which-key)'
-            }, {
-                'Civitasv/cmake-tools.nvim',
-		        dependencies = { 'nvim-lua/plenary.nvim' },
-		        opts = {}
             }
         }
+    }, {
+
+        'Civitasv/cmake-tools.nvim',
+        dependencies = {'nvim-lua/plenary.nvim'},
+        opts = {}
     }
 }
-

@@ -129,6 +129,7 @@ setup_env() {
             install_if_not_found "ripgrep"
             install_if_not_found "zsh"
             install_if_not_found "tmux"
+            install_if_not_found "fzf"
             install_packages $(get_package_names "proxychains_tool")
             install_if_not_found "cmake"
             install_if_not_found "ninja-build"
@@ -145,6 +146,7 @@ setup_env() {
             install_if_not_found "ripgrep"
             install_if_not_found "zsh"
             install_if_not_found "tmux"
+            install_if_not_found "fzf"
             install_packages $(get_package_names "proxychains_tool")
             install_if_not_found "gcc"
             install_if_not_found "g++"
@@ -176,6 +178,7 @@ setup_env() {
 
 setup_zsh() {
     install_if_not_found "zsh"
+    install_if_not_found "fzf"
 
     if [ -d "$HOME/.oh-my-zsh" ]; then
         echo "Setup Zsh: oh-my-zsh already installed, skip..."

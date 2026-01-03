@@ -104,13 +104,13 @@ export EDITOR="vim"
 export SYSTEMD_EDITOR="vim"
 export PATH="/home/suemi/bin:/home/suemi/.local/bin:$PATH"
 
-bindkey '^R' history-incremental-search-backward
-
 alias vpn='proxychains4'
 alias co='git checkout'
 alias gstat='git status'
 alias glog='git log'
 alias gbranch='git branch'
+
+source <(fzf --zsh)
 
 # 如果不在 tmux 里，就 attach 已有会话；没有则新建
 [ -z "$TMUX" ] && exec tmux new-session -A -s main
