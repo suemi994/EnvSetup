@@ -370,5 +370,10 @@ return {
         'Civitasv/cmake-tools.nvim',
         dependencies = {'nvim-lua/plenary.nvim'},
         opts = {}
+    },
+    {
+        "yousefhadder/markdown-plus.nvim",
+        ft = "markdown",
+        opts = {},
     }
 }
