@@ -1,82 +1,17 @@
 return {
     {
-        'jackMort/ChatGPT.nvim',
-        dependencies = {
-            'MunifTanjim/nui.nvim', 'nvim-lua/plenary.nvim',
-            'folke/trouble.nvim', 'nvim-telescope/telescope.nvim'
-        },
-        enabled = false,
-        -- event = 'VeryLazy',
-        cmd = {'ChatGPT', 'ChatGPTRun', 'ChatGPTEditWithInstruction'},
-        opts = function()
-            local home = vim.fn.expand('$HOME')
-            return {
-                -- api_host_cmd = 'echo 'https://api.chatanywhere.tech'',
-                -- api_key_cmd = 'gpg --decrypt ' .. home .. '/.config/chatgpt.gpg',
-                openai_params = {
-                    model = 'gpt-4o-mini',
-                    frequency_penalty = 0,
-                    presence_penalty = 0,
-                    max_tokens = 4095,
-                    temperature = 0.2,
-                    top_p = 0.1,
-                    n = 1
-                }
-            }
-        end
-    }, {
-        'yetone/avante.nvim',
-        event = 'VeryLazy',
-        enabled = false,
-        opts = {
-            provider = 'openai',
-            openai = {
-                endpoint = 'https://api.chatanywhere.tech',
-                model = 'gpt-4o-mini',
-                temperature = 0,
-                max_tokens = 4096
-            }
-        },
-        -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-        build = 'make',
-        dependencies = {
-            'nvim-treesitter/nvim-treesitter', 'stevearc/dressing.nvim',
-            'nvim-lua/plenary.nvim', 'MunifTanjim/nui.nvim',
-            --- The below dependencies are optional,
-            'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-            {
-                -- support for image pasting
-                'HakonHarnes/img-clip.nvim',
-                event = 'VeryLazy',
-                opts = {
-                    -- recommended settings
-                    default = {
-                        embed_image_as_base64 = false,
-                        prompt_for_file_name = false,
-                        drag_and_drop = {insert_mode = true},
-                        -- required for Windows users
-                        use_absolute_path = true
-                    }
-                }
-            }, {
-                -- Make sure to set this up properly if you have lazy=true
-                'MeanderingProgrammer/render-markdown.nvim',
-                opts = {file_types = {'markdown', 'Avante'}},
-                ft = {'markdown', 'Avante'}
-            }
-        }
-    }, {
         'greggh/claude-code.nvim',
         event = 'VeryLazy',
         enabled = true,
         dependencies = {
-            "nvim-lua/plenary.nvim", -- Required for git operations
+            "nvim-lua/plenary.nvim" -- Required for git operations
         },
         config = function()
             require('claude-code').setup({
                 window = {position = "vertical", split_ratio = 0.5},
-                git = { use_git_root = true },
-                command = 'ccr code',
+                git = {use_git_root = true},
+                -- command = 'NO_COLOR=1 codex',
+                command = 'claude',
                 command_variants = {
                     continue = "--continue",
                     resume = "--resume"
@@ -88,5 +23,30 @@ return {
 
             })
         end
+    }, {
+        'kkrampis/codex.nvim',
+        lazy = true,
+        cmd = {'Codex', 'CodexToggle'}, -- Optional: Load only on command execution
+        keys = {
+            {
+                '<leader>a', -- Change this to your preferred keybinding
+                function() require('codex').toggle() end,
+                desc = 'Toggle Codex popup or side-panel',
+                mode = {'n', 't'}
+            }
+        },
+        opts = {
+            keymaps = {
+                toggle = nil, -- Keybind to toggle Codex window (Disabled by default, watch out for conflicts)
+                quit = '<C-q>' -- Keybind to close the Codex window (default: Ctrl + q)
+            }, -- Disable internal default keymap (<leader>cc -> :CodexToggle)
+            border = 'rounded', -- Options: 'single', 'double', or 'rounded'
+            width = 0.5, -- Width of the floating window (0.0 to 1.0)
+            height = 0.5, -- Height of the floating window (0.0 to 1.0)
+            model = nil, -- Optional: pass a string to use a specific model (e.g., 'o3-mini')
+            autoinstall = false, -- Automatically install the Codex CLI if not found
+            panel = true, -- Open Codex in a side-panel (vertical split) instead of floating window
+            use_buffer = false -- Capture Codex stdout into a normal buffer instead of a terminal buffer
+        }
     }
 }
