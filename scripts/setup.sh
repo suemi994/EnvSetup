@@ -96,6 +96,135 @@ install_packages() {
 }
 
 # =============================================================================
+# Shell configuration helpers
+# Must run AFTER setup_zsh / setup_fish have run, which export SHELL and set
+# SH_PROFILE / SH_CONF (they also create the files/dirs). If SHELL is empty or
+# neither zsh nor fish, these helpers skip with a message.
+#   - zsh:  lines are appended directly to the target file
+#   - fish: env entries are inserted inside the existing
+#           `if not contains ... $PATH` guard block (SH_PROFILE);
+#           single-line commands inside the `if status is-interactive`
+#           block (SH_CONF)
+# =============================================================================
+
+# Add an environment variable or PATH entry to SH_PROFILE
+upsert_env() {
+    local line=$1
+
+    if [ -z "$SHELL" ] || { [ "$SHELL" != "zsh" ] && [ "$SHELL" != "fish" ]; }; then
+        echo "upsert_env: SHELL is empty or unsupported ($SHELL), skip..."
+        return 1
+    fi
+
+    case "$SHELL" in
+        zsh)
+            SH_PROFILE="${SH_PROFILE:-$HOME/.zprofile}"
+            ;;
+        fish)
+            SH_PROFILE="${SH_PROFILE:-$HOME/.config/fish/conf.d/env.fish}"
+            ;;
+    esac
+    local target="$SH_PROFILE"
+
+    if [ "$SHELL" = "fish" ]; then
+        if grep -Fqx "$line" "$target" || grep -Fqx "    $line" "$target"; then
+            return
+        fi
+        local tmp_file="${target}.tmp.$$"
+        UPSERT_LINE="$line" awk '
+            {
+                lines[NR] = $0
+                if (!in_guard && $0 ~ /^if not contains /) {
+                    in_guard = 1
+                    depth = 1
+                } else if (in_guard) {
+                    if ($0 ~ /^[[:space:]]*if /) depth++
+                    if ($0 ~ /^[[:space:]]*end[[:space:]]*$/) {
+                        depth--
+                        if (depth == 0) {
+                            guard_end = NR
+                            in_guard = 0
+                        }
+                    }
+                }
+            }
+            END {
+                if (guard_end == 0) {
+                    # No guard block: fall back to appending at end of file
+                    for (i = 1; i <= NR; i++) print lines[i]
+                    print "    " ENVIRON["UPSERT_LINE"]
+                } else {
+                    for (i = 1; i <= NR; i++) {
+                        if (i == guard_end) print "    " ENVIRON["UPSERT_LINE"]
+                        print lines[i]
+                    }
+                }
+            }
+        ' "$target" > "$tmp_file" && mv "$tmp_file" "$target"
+    elif ! grep -Fqx "$line" "$target" 2>/dev/null; then
+        printf '%s\n' "$line" >> "$target"
+    fi
+}
+
+# Add a single-line command (e.g. alias) to SH_CONF
+upsert_conf() {
+    local line=$1
+
+    if [ -z "$SHELL" ] || { [ "$SHELL" != "zsh" ] && [ "$SHELL" != "fish" ]; }; then
+        echo "upsert_conf: SHELL is empty or unsupported ($SHELL), skip..."
+        return 1
+    fi
+
+    case "$SHELL" in
+        zsh)
+            SH_CONF="${SH_CONF:-$HOME/.zshrc}"
+            ;;
+        fish)
+            SH_CONF="${SH_CONF:-$HOME/.config/fish/config.fish}"
+            ;;
+    esac
+    local target="$SH_CONF"
+
+    if [ "$SHELL" = "fish" ]; then
+        if grep -Fqx "$line" "$target" || grep -Fqx "    $line" "$target"; then
+            return
+        fi
+        local tmp_file="${target}.tmp.$$"
+        UPSERT_LINE="$line" awk '
+            {
+                lines[NR] = $0
+                if (!in_block && $0 ~ /^if status is-interactive/) {
+                    in_block = 1
+                    depth = 1
+                } else if (in_block) {
+                    if ($0 ~ /^[[:space:]]*if /) depth++
+                    if ($0 ~ /^[[:space:]]*end[[:space:]]*$/) {
+                        depth--
+                        if (depth == 0) {
+                            block_end = NR
+                            in_block = 0
+                        }
+                    }
+                }
+            }
+            END {
+                if (block_end == 0) {
+                    for (i = 1; i <= NR; i++) print lines[i]
+                    print "    " ENVIRON["UPSERT_LINE"]
+                } else {
+                    for (i = 1; i <= NR; i++) {
+                        if (i == block_end) print "    " ENVIRON["UPSERT_LINE"]
+                        print lines[i]
+                    }
+                }
+            }
+        ' "$target" > "$tmp_file" && mv "$tmp_file" "$target"
+    elif ! grep -Fqx "$line" "$target" 2>/dev/null; then
+        printf '%s\n' "$line" >> "$target"
+    fi
+}
+
+# =============================================================================
 # Initialize environment
 # =============================================================================
 init_package_manager
@@ -179,6 +308,9 @@ setup_env() {
 setup_zsh() {
     install_if_not_found "zsh"
     install_if_not_found "fzf"
+    export SHELL="zsh"
+    SH_PROFILE="$HOME/.zprofile"
+    SH_CONF="$HOME/.zshrc"
 
     if [ -d "$HOME/.oh-my-zsh" ]; then
         echo "Setup Zsh: oh-my-zsh already installed, skip..."
@@ -192,17 +324,66 @@ setup_zsh() {
     mv ~/.oh-my-zsh ${ROOT_DIR}/local/oh-my-zsh && ln -s ${ROOT_DIR}/local/oh-my-zsh ${HOME}/.oh-my-zsh
     cp ${CUR_DIR}/conf/zshrc ~/.zshrc && source ~/.zshrc
 
-    local added=$(echo $PATH | grep "${ROOT_DIR}/bin" | wc -l)
-    if [ $added -eq 0 ]; then
-        echo "export PATH=\"\$PATH:${ROOT_DIR}/bin\"" >> ~/.zshrc
-    fi
-
-    # Add git aliases (for both distributions)
-    echo "alias co='git checkout'" >> ~/.zshrc
-    echo "alias gstat='git status'" >> ~/.zshrc
-    echo "alias glog='git log --oneline -10'" >> ~/.zshrc
+    # Env vars/PATH go to SH_PROFILE, aliases go to SH_CONF
+    cat >> "$SH_PROFILE" << EOF
+export PATH="\$PATH:${ROOT_DIR}/bin"
+EOF
+    cat >> "$SH_CONF" << 'EOF'
+alias co='git checkout'
+alias gstat='git status'
+alias glog='git log --oneline -10'
+EOF
 
     echo "Setup zsh finished, enjoy yourself..."
+}
+
+setup_fish() {
+    install_if_not_found "fzf"
+    install_if_not_found "fish"
+
+    export SHELL="fish"
+    SH_PROFILE="$HOME/.config/fish/conf.d/env.fish"
+    SH_CONF="$HOME/.config/fish/config.fish"
+
+    if [ -f "$SH_PROFILE" ]; then
+        echo "Setup fish: fish already installed, skip..."
+        return
+    fi
+
+    fish -c "$(curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher)"
+    if [ $? -ne 0 ]; then
+        echo "Setup Fish: fail to download fisher, exiting..."
+        return
+    fi
+
+    fish -c "fisher install jorgebucaran/fisher"
+    fish -c "fisher install patrickf1/fzf.fish"
+    fish -c "fisher install edc/bass"
+    fish -c "fisher install berk-karaal/loadenv.fish"
+    fish -c "fisher install ilancosman/tide@v6"
+
+    sudo echo $(which fish) >> /etc/shells
+
+    cat > "$SH_CONF" << 'EOF'
+if status is-interactive
+    if test -z "$TMUX"
+        tmux attach-session -t main; or tmux new-session -s main
+    end
+    string match -q "$HOME" "$PWD"; or string match -q "$HOME/*" "$PWD"; or cd "$HOME"
+    alias co='git checkout'
+    alias gstat='git status'
+    alias glog='git log'
+    alias gbranch='git branch'
+    alias ls='ls --color=never'
+    alias tree='tree -n'
+end
+EOF
+
+    cat >> "$SH_PROFILE" << 'EOF'
+if not contains "$HOME/.local/bin" $PATH
+    fish_add_path "$HOME/.local/bin"
+end
+EOF
 }
 
 setup_tmux() {
@@ -253,10 +434,7 @@ setup_vpn() {
     sudo mv $PROXY_CONF ${PROXY_CONF}.old 2>/dev/null
     sudo mv $CONF_FILE $PROXY_CONF
 
-    local aliased=$(grep "vpn=" ${HOME}/.zshrc | wc -l)
-    if [ $aliased -eq 0 ]; then
-        echo "alias vpn='$PROXY_CMD'" >> ${HOME}/.zshrc
-    fi
+    upsert_conf "alias vpn='$PROXY_CMD'"
 
     echo "Setup VPN finished, enjoy yourself"
 }
@@ -305,8 +483,8 @@ setup_lua() {
     echo "Lua Setup: check luarocks..."
     install_if_not_found "luarocks"
 
-    echo -e "export LUAROCKS_HOME=${HOME}/.luarocks" >> ${HOME}/.zshrc
-    echo -e "export PATH=\"\$PATH:\${LUAROCKS_HOME}/bin\"" >> ${HOME}/.zshrc
+    upsert_env "export LUAROCKS_HOME=${HOME}/.luarocks"
+    upsert_env "export PATH=\"\$PATH:\${LUAROCKS_HOME}/bin\""
 
     luarocks install --local --server=https://luarocks.org/dev luaformatter 2>/dev/null || echo "Luaformatter installation failed, continuing..."
 }
@@ -408,9 +586,9 @@ setup_rust() {
 
     if ! command -v rustup >/dev/null 2>&1; then
         echo "Rust Setup: add binary tool into PATH variable..."
-        echo "export CARGO_HOME=${CARGO_HOME}" >> ${HOME}/.zshrc
-        echo "export RUSTUP_HOME=${RUSTUP_HOME}" >> ${HOME}/.zshrc
-        echo -e "export PATH=\"\$PATH:\${CARGO_HOME}/bin\"" >> ${HOME}/.zshrc
+        upsert_env "export CARGO_HOME=${CARGO_HOME}"
+        upsert_env "export RUSTUP_HOME=${RUSTUP_HOME}"
+        upsert_env "export PATH=\"\$PATH:\${CARGO_HOME}/bin\""
     fi
     ${CARGO_HOME}/bin/cargo install ast-grep --locked
     echo "Setup rust finished, enjoy yourself..."
@@ -433,9 +611,9 @@ setup_golang() {
     export GOPATH="${GOROOT}/packages"
 
     if ! command -v go >/dev/null 2>&1; then
-        echo "export GOROOT=${GOROOT}" >> ${HOME}/.zshrc
-        echo "export GOPATH=${GOPATH}" >> ${HOME}/.zshrc
-        echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOPATH/bin\"" >> ${HOME}/.zshrc
+        upsert_env "export GOROOT=${GOROOT}"
+        upsert_env "export GOPATH=${GOPATH}"
+        upsert_env "export PATH=\"\$PATH:\$GOROOT/bin:\$GOPATH/bin\""
     fi
 
     $GOROOT/bin/go install golang.org/x/tools/gopls@latest
@@ -480,210 +658,8 @@ setup_nodejs() {
     if [ $? -ne 0 ]; then
         echo "Setup Node.js: install nvm failed!"
     fi
-    source $HOME/.zshrc
     nvm install --lts
     nvm use --lts
-}
-
-setup_mcp() {
-    echo "Setup MCP: installing MCP servers for specified agents..."
-    # Ensure Node.js and npm are installed
-    setup_nodejs
-    mkdir -p "$ROOT_DIR/local/mcp"
-
-    if npm install -g claude-mermaid 2>/dev/null; then
-        for agent in "$@"; do
-            case $agent in
-                "claude")
-                    claude mcp add --scope user mermaid claude-mermaid
-                    echo "Setup MCP: mermaid server installed for Claude"
-                    ;;
-                *)
-                    echo "Setup MCP: unknown agent '$agent', skip mermaid"
-                    ;;
-            esac
-        done
-    else
-        echo "Setup MCP: mermaid server installation failed"
-    fi
-    
-    if npm install -g @probelabs/probe 2>/dev/null; then
-        for agent in "$@"; do
-            case $agent in
-                "claude")
-                    claude mcp add --scope user probe-search npx @probelabs/probe mcp
-                    echo "Setup MCP: probe search server installed for Claude"
-                    ;;
-                *)
-                    echo "Setup MCP: unknown agent '$agent', skip probe search"
-                    ;;
-            esac
-        done
-    else
-        echo "Setup MCP: probe search server installation failed"
-    fi
-
-    if npm install -g octocode-mcp 2>/dev/null; then
-        for agent in "$@"; do
-            case $agent in
-                "claude")
-                    claude mcp add --scope user octocode npx octocode-mcp@latest
-                    echo "Setup MCP: github server installed for Claude"
-                    ;;
-                *)
-                    echo "Setup MCP: unknown agent '$agent', skip github server"
-                    ;;
-            esac
-        done
-    else
-        echo "Setup MCP: github server installation failed"
-   fi
-
-    local source_dir="${CUR_DIR}/mcp"
-    local target_dir="$ROOT_DIR/local/mcp"
-    mkdir -p $target_dir
-
-    if [ -d "$source_dir" ]; then
-        for item_dir in "$source_dir"/*; do
-            if [ -d "$item_dir" ]; then
-                item_name=$(basename "$item_dir")
-                ln -sf "$item_dir" "$target_dir/$item_name"
-                echo "Setup MCP: linked mcp server $item_name"
-            fi
-        done
-    fi
-
-    if ! command -v ast-grep >/dev/nul 2>&1; then
-        cargo install ast-grep --locked
-    fi
-    if git clone https://github.com/ast-grep/ast-grep-mcp.git $target_dir/ast-grep; then
-        cd $target_dir/ast-grep && uv sync
-        for agent in "$@"; do
-            case $agent in
-                "claude")
-                    local json=$(jq -n --arg dir "$target_dir/ast-grep" \
-                    '{
-                        "type": "stdio",
-                        "command": "uv",
-                        "args": ["--directory", $dir, "run", "main.py"],
-                        "env": {}
-                    }')
-                    claude mcp add-json --scope user ast-grep $json
-                    echo "Setup MCP: ast-grep server installed for Claude"
-                    ;;
-                *)
-                    echo "Setup MCP: unknown agent '$agent', skip ast-grep server"
-                    ;;
-            esac
-        done
-    else
-        echo "Setup MCP: ast-grep-mcp server installation failed"
-    fi
-    echo "Setup MCP finished!"
-}
-
-setup_claude() {
-    echo "Setup Claude: check dependencies..."
-
-    # Ensure Node.js and npm are installed
-    setup_nodejs
-
-    npm install -g @anthropic-ai/claude-code
-    npm install -g @musistudio/claude-code-router
-    npm install -g ccusage
-
-    echo "Setup Claude: creating directories..."
-    mkdir -p "$HOME/.claude/skills"
-    mkdir -p "$HOME/.claude/mcp"
-
-    echo "Setup Claude: creating configuration templates..."
-    # Create claude-code-router config template
-    local ROUTER_TEMPLATE="${CUR_DIR}/claude/claude-code-router.json.template"
-    local ROUTER_CONFIG="$HOME/.claude-code-router/config.json"
-
-    if [ -f "$ROUTER_TEMPLATE" ]; then
-        mkdir -p "$(dirname "$ROUTER_CONFIG")"
-        cp "$ROUTER_TEMPLATE" "$ROUTER_CONFIG"
-
-        # Replace placeholders with environment variables
-        if [ ! -z "$DASHSCOPE_API_KEY" ]; then
-            sed -i "s/<DASHSCOPE_API_KEY>/$DASHSCOPE_API_KEY/g" "$ROUTER_CONFIG"
-        fi
-        if [ ! -z "$GLM_API_KEY" ]; then
-            sed -i "s/<GLM_API_KEY>/$GLM_API_KEY/g" "$ROUTER_CONFIG"
-        fi
-        if [ ! -z "$MINIMAX_API_KEY" ]; then
-            sed -i "s/<MINIMAX_API_KEY>/$MINIMAX_API_KEY/g" "$ROUTER_CONFIG"
-        fi
-
-        chmod 600 "$ROUTER_CONFIG"
-        echo "Setup Claude: claude-code-router template created at $ROUTER_CONFIG"
-    fi
-
-    # Create environment variables file directly
-    local ENV_CONFIG="$HOME/.claude/env.sh"
-
-    if [ -f "$ENV_CONFIG" ]; then
-        echo "Setup Claude: environment file already exists at $ENV_CONFIG"
-    else
-        # Create environment file with actual values if variables are set
-        echo "# Claude Environment Variables" > "$ENV_CONFIG"
-        if [ ! -z "$DASHSCOPE_API_KEY" ]; then
-            echo "export DASHSCOPE_API_KEY=\"$DASHSCOPE_API_KEY\"" >> "$ENV_CONFIG"
-        fi
-        if [ ! -z "$GLM_API_KEY" ]; then
-            echo "export GLM_API_KEY=\"$GLM_API_KEY\"" >> "$ENV_CONFIG"
-        fi
-        if [ ! -z "$BRAVE_SEARCH_API_KEY" ]; then
-            echo "export BRAVE_SEARCH_API_KEY=\"$BRAVE_SEARCH_API_KEY\"" >> "$ENV_CONFIG"
-        fi
-        if [ ! -z "$GITHUB_TOKEN" ]; then
-            echo "export GITHUB_TOKEN=\"$GITHUB_TOKEN\"" >> "$ENV_CONFIG"
-        fi
-        if [ ! -z "$MINIMAX_API_KEY" ]; then
-            echo "export MINIMAX_API_KEY=\"$MINIMAX_API_KEY\"" >> "$ENV_CONFIG"
-        fi
-
-        chmod +x "$ENV_CONFIG"
-        echo "Setup Claude: environment file created at $ENV_CONFIG"
-    fi
-
-    # Call setup_mcp for Claude agent
-    setup_mcp claude
-
-    echo "Setup Claude: creating symlinks for local components..."
-    # Define component directories array
-    local components=("skills" "commands")
-
-    # Process each component type
-    for component in "${components[@]}"; do
-        local source_dir="${CUR_DIR}/claude/$component"
-        local target_dir="$HOME/.claude/$component"
-        mkdir -p $target_dir
-
-        if [ -d "$source_dir" ]; then
-            for item_dir in "$source_dir"/*; do
-                if [ -d "$item_dir" ]; then
-                    item_name=$(basename "$item_dir")
-                    ln -sf "$item_dir" "$target_dir/$item_name"
-                    echo "Setup Claude: linked $component component $item_name"
-                fi
-            done
-        fi
-    done
-
-    # Add environment variables to .zshrc if not already present
-    if [ -f "$ENV_CONFIG" ]; then
-        local claude_env=$(grep "# Claude Environment Variables" "$HOME/.zshrc" | wc -l)
-        if [ $claude_env -eq 0 ]; then
-            echo "" >> "$HOME/.zshrc"
-            echo "# Claude Environment Variables - source $ENV_CONFIG" >> "$HOME/.zshrc"
-            echo "[ -f \"$ENV_CONFIG\" ] && source \"$ENV_CONFIG\"" >> "$HOME/.zshrc"
-            echo "Setup Claude: environment variables added to .zshrc"
-        fi
-    fi
-
-    echo "Setup Claude finished! Configure your API keys in $ENV_CONFIG"
 }
 
 setup_docker() {
@@ -759,20 +735,15 @@ EOF
 
     sudo systemctl restart docker
 
-    # Add docker aliases to .zshrc if not already present
-    local docker_aliases=$(grep "# Docker Aliases" "$HOME/.zshrc" | wc -l)
-    if [ $docker_aliases -eq 0 ]; then
-        echo "" >> "$HOME/.zshrc"
-        echo "# Docker Aliases" >> "$HOME/.zshrc"
-        echo "alias dps='docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\"'" >> "$HOME/.zshrc"
-        echo "alias dlogs='docker logs -f'" >> "$HOME/.zshrc"
-        echo "alias dstop='docker stop \$(docker ps -q)'" >> "$HOME/.zshrc"
-        echo "alias drm='docker rm \$(docker ps -aq)'" >> "$HOME/.zshrc"
-        echo "alias dcu='docker-compose up -d'" >> "$HOME/.zshrc"
-        echo "alias dcd='docker-compose down'" >> "$HOME/.zshrc"
-        echo "alias dcl='docker-compose logs -f'" >> "$HOME/.zshrc"
-        echo "Setup Docker: aliases added to .zshrc"
-    fi
+    # Add docker aliases (idempotent per line, into SH_CONF)
+    upsert_conf "alias dps='docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\"'"
+    upsert_conf "alias dlogs='docker logs -f'"
+    upsert_conf "alias dstop='docker stop \$(docker ps -q)'"
+    upsert_conf "alias drm='docker rm \$(docker ps -aq)'"
+    upsert_conf "alias dcu='docker-compose up -d'"
+    upsert_conf "alias dcd='docker-compose down'"
+    upsert_conf "alias dcl='docker-compose logs -f'"
+    echo "Setup Docker: aliases added to shell config"
 
     echo "Setup Docker: verification..."
     docker --version
