@@ -361,6 +361,7 @@ setup_fish() {
     fish -c "fisher install edc/bass"
     fish -c "fisher install berk-karaal/loadenv.fish"
     fish -c "fisher install ilancosman/tide@v6"
+    fish -c "set -U fish_greeting"
 
     sudo echo $(which fish) >> /etc/shells
 

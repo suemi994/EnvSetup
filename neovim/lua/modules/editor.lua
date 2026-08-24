@@ -254,6 +254,12 @@ return {
                 noremap = true,
                 desc = 'Find struct symbols with filters in current buffer'
             }, {
+                '<leader>g',
+                '<cmd>:lua require("telescope.builtin").lsp_dynamic_workspace_symbols({symbols= {"function", "method", "class", "struct"}})<cr>',
+                silent = true,
+                noremap = true,
+                desc = 'Find symbols with filters in global worspace'
+            }, {
                 '<C-p>',
                 '<cmd>Telescope find_files<cr>',
                 mode = {'n', 'i'},
@@ -370,10 +376,5 @@ return {
         'Civitasv/cmake-tools.nvim',
         dependencies = {'nvim-lua/plenary.nvim'},
         opts = {}
-    },
-    {
-        "yousefhadder/markdown-plus.nvim",
-        ft = "markdown",
-        opts = {},
-    }
+    }, {"yousefhadder/markdown-plus.nvim", ft = "markdown", opts = {}}
 }

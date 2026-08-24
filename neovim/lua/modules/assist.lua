@@ -10,7 +10,6 @@ return {
             require('claude-code').setup({
                 window = {position = "vertical", split_ratio = 0.5},
                 git = {use_git_root = true},
-                -- command = 'NO_COLOR=1 codex',
                 command = 'claude',
                 command_variants = {
                     continue = "--continue",
