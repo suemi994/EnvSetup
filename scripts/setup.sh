@@ -166,6 +166,53 @@ upsert_env() {
     fi
 }
 
+# Define an env var KEY=VALUE and put $KEY/bin on PATH, only if KEY is not
+# already defined in the profile. Idempotent.
+#   - zsh:  `export KEY=VALUE` + `export PATH="$PATH:$KEY/bin"`
+#   - fish: `set -gx KEY "VALUE"`   + `fish_add_path -a "$KEY/bin"`
+upsert_path() {
+    local key=$1
+    local value=$2
+
+    if [ -z "$SHELL" ] || { [ "$SHELL" != "zsh" ] && [ "$SHELL" != "fish" ]; }; then
+        echo "upsert_path: SHELL is empty or unsupported ($SHELL), skip..."
+        return 1
+    fi
+
+    case "$SHELL" in
+        zsh)
+            SH_PROFILE="${SH_PROFILE:-$HOME/.zprofile}"
+            ;;
+        fish)
+            SH_PROFILE="${SH_PROFILE:-$HOME/.config/fish/conf.d/env.fish}"
+            SH_CONF="${SH_CONF:-$HOME/.config/fish/config.fish}"
+            ;;
+    esac
+
+    local export_re
+    case "$SHELL" in
+        zsh)
+            export_re="^[[:space:]]*export[[:space:]]+${key}="
+            ;;
+        fish)
+            export_re="^[[:space:]]*set -gx ${key} "
+            ;;
+    esac
+
+    # Skip if the env var is already defined in the profile
+    if grep -Eq "$export_re" "$SH_PROFILE" 2>/dev/null; then
+        return
+    fi
+
+    if [ "$SHELL" = "zsh" ]; then
+        printf 'export %s=%s\n' "$key" "$value" >> "$SH_PROFILE"
+        printf 'export PATH="$PATH:${%s}/bin"\n' "$key" >> "$SH_PROFILE"
+    else
+        printf 'set -gx %s "%s"\n' "$key" "$value" >> "$SH_PROFILE"
+        printf 'fish_add_path -a "$%s/bin"\n' "$key" >> "$SH_CONF"
+    fi
+}
+
 # Add a single-line command (e.g. alias) to SH_CONF
 upsert_conf() {
     local line=$1
@@ -506,8 +553,7 @@ setup_lua() {
     echo "Lua Setup: check luarocks..."
     install_if_not_found "luarocks"
 
-    upsert_env "export LUAROCKS_HOME=${HOME}/.luarocks"
-    upsert_env "export PATH=\"\$PATH:\${LUAROCKS_HOME}/bin\""
+    upsert_path "LUAROCKS_HOME" "${HOME}/.luarocks"
 
     luarocks install --local --server=https://luarocks.org/dev luaformatter 2>/dev/null || echo "Luaformatter installation failed, continuing..."
 }
@@ -609,9 +655,8 @@ setup_rust() {
 
     if ! command -v rustup >/dev/null 2>&1; then
         echo "Rust Setup: add binary tool into PATH variable..."
-        upsert_env "export CARGO_HOME=${CARGO_HOME}"
-        upsert_env "export RUSTUP_HOME=${RUSTUP_HOME}"
-        upsert_env "export PATH=\"\$PATH:\${CARGO_HOME}/bin\""
+        upsert_path "CARGO_HOME" "${CARGO_HOME}"
+        upsert_path "RUSTUP_HOME" "${RUSTUP_HOME}"
     fi
     ${CARGO_HOME}/bin/cargo install ast-grep --locked
     echo "Setup rust finished, enjoy yourself..."
@@ -634,9 +679,8 @@ setup_golang() {
     export GOPATH="${GOROOT}/packages"
 
     if ! command -v go >/dev/null 2>&1; then
-        upsert_env "export GOROOT=${GOROOT}"
-        upsert_env "export GOPATH=${GOPATH}"
-        upsert_env "export PATH=\"\$PATH:\$GOROOT/bin:\$GOPATH/bin\""
+        upsert_path "GOROOT" "${GOROOT}"
+        upsert_path "GOPATH" "${GOPATH}"
     fi
 
     $GOROOT/bin/go install golang.org/x/tools/gopls@latest
@@ -716,7 +760,7 @@ setup_pi() {
         echo "Setup Pi: already installed, skipping..."
     else
         echo "Setup Pi: installing Pi..."
-        npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+        curl -fsSL https://pi.dev/install.sh | sh
         if [ $? -ne 0 ]; then
             echo "Setup Pi: Pi installation failed!"
             return 1
@@ -758,7 +802,7 @@ setup_pi() {
     done
 
     local PI_CONF_DIR="$HOME/.pi/agent/"
-    cp -r $ROOT_DIR/pi-agent/* $HOME/.pi/agent/
+    cp -r $ROOT_DIR/pi-agent/* "$PI_CONF_DIR"
     echo "Setup Pi finished, enjoy yourself..."
 }
 
