@@ -184,6 +184,27 @@ upsert_conf() {
             ;;
     esac
     local target="$SH_CONF"
+    local alias_name
+    alias_name=""
+
+    # Alias commands should be idempotent by alias name, not by the complete
+    # command. This avoids adding a second definition when its implementation
+    # changes between setup runs.
+    case "$line" in
+        alias\ *=*)
+            alias_name=${line#alias }
+            alias_name=${alias_name%%=*}
+            case "$alias_name" in
+                ""|*[!A-Za-z0-9_]*)
+                    alias_name=""
+                    ;;
+            esac
+            ;;
+    esac
+
+    if [ -n "$alias_name" ] && grep -Eq "^[[:space:]]*alias[[:space:]]+${alias_name}([[:space:]=]|$)" "$target" 2>/dev/null; then
+        return
+    fi
 
     if [ "$SHELL" = "fish" ]; then
         if grep -Fqx "$line" "$target" || grep -Fqx "    $line" "$target"; then
@@ -377,6 +398,7 @@ if status is-interactive
     alias gbranch='git branch'
     alias ls='ls --color=never'
     alias tree='tree -n'
+    alias vpn='proxychains4 -q'
 end
 EOF
 
@@ -435,7 +457,7 @@ setup_vpn() {
     sudo mv $PROXY_CONF ${PROXY_CONF}.old 2>/dev/null
     sudo mv $CONF_FILE $PROXY_CONF
 
-    upsert_conf "alias vpn='$PROXY_CMD'"
+    upsert_conf "alias vpn='$PROXY_CMD -q'"
 
     echo "Setup VPN finished, enjoy yourself"
 }
@@ -651,16 +673,78 @@ setup_nodejs() {
 
     # Check and install Node.js if needed
     if command -v nvm > /dev/null 2>&1; then
-        echo "Setup Node.js: already installed, skipping..."
+        echo "Setup Node.js: nvm already installed, using the latest LTS..."
+        nvm install --lts
+        nvm use --lts
         return
     fi
+
     local nvm_tag=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r .tag_name)
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_tag}/install.sh | bash
     if [ $? -ne 0 ]; then
         echo "Setup Node.js: install nvm failed!"
+        return 1
     fi
+
+    # The installer updates shell startup files, but those are not sourced
+    # automatically when this script is running non-interactively.
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+    if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+        echo "Setup Node.js: nvm.sh not found after installation!"
+        return 1
+    fi
+    . "$NVM_DIR/nvm.sh"
     nvm install --lts
     nvm use --lts
+}
+
+setup_pi() {
+    echo "Setup Pi: check dependencies..."
+
+    # Pi is distributed as an npm package. Ensure npm is available in this
+    # shell as well as in future login shells before installing it.
+    if ! command -v npm > /dev/null 2>&1; then
+        setup_nodejs
+    fi
+
+    if ! command -v npm > /dev/null 2>&1; then
+        echo "Setup Pi: npm not found, cannot install Pi."
+        return 1
+    fi
+
+    if command -v pi > /dev/null 2>&1; then
+        echo "Setup Pi: already installed, skipping..."
+    else
+        echo "Setup Pi: installing Pi..."
+        npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+        if [ $? -ne 0 ]; then
+            echo "Setup Pi: Pi installation failed!"
+            return 1
+        fi
+    fi
+
+    if ! command -v pi > /dev/null 2>&1; then
+        echo "Setup Pi: pi command not found after installation!"
+        return 1
+    fi
+
+    # Keep this list in sync with the user-scoped Pi extensions currently in
+    # use. `pi install` records packages in ~/.pi/agent/settings.json.
+    local pi_packages="npm:pi-subagents npm:@narumitw/pi-goal npm:pi-marketplace npm:@narumitw/pi-btw npm:pi-agent-hud npm:pi-mcp-adapter npm:pi-web-access npm:@spences10/pi-lsp npm:codet-pi-init"
+    local package
+    for package in $pi_packages; do
+        if pi list 2>/dev/null | grep -Fq "$package"; then
+            echo "Setup Pi: $package already installed, skipping..."
+        else
+            echo "Setup Pi: installing extension package $package..."
+            pi install "$package"
+            if [ $? -ne 0 ]; then
+                echo "Setup Pi: failed to install $package, continuing..."
+            fi
+        fi
+    done
+
+    echo "Setup Pi finished, enjoy yourself..."
 }
 
 setup_docker() {
@@ -803,6 +887,10 @@ while true; do
             setup_nodejs
             break
             ;;
+        "pi")
+            setup_pi
+            break
+            ;;
         "mcp")
             shift
             if [ $# -eq 0 ]; then
@@ -834,6 +922,7 @@ while true; do
             setup_lua
             setup_nvim
             setup_nodejs
+            setup_pi
             setup_claude
             setup_docker
             break
@@ -857,6 +946,7 @@ while true; do
             echo -e "\tpython   - Setup Python development environment"
             echo -e "\tlua      - Setup Lua development environment"
             echo -e "\tnodejs   - Setup Node.js development environment"
+            echo -e "\tpi       - Install Pi and configured extension packages"
             echo -e "\tmcp      - Setup MCP servers for specific agents"
             echo -e "\tclaude   - Setup Claude Code development environment"
             echo -e "\tdocker   - Setup Docker environment"

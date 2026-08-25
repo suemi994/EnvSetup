@@ -17,7 +17,7 @@ Core stack:
 # Run a specific setup subcommand
 ROOT_DIR=$HOME bash scripts/setup.sh <command>
 # Commands: env | zsh | tmux | vpn | nvim | cpp | rust | golang |
-#           python | lua | nodejs | mcp <agent...> | claude | docker | all
+#           python | lua | nodejs | pi | mcp <agent...> | claude | docker | all
 
 # Build and run the Debian test container
 docker build -f Dockerfile.debian -t setup-debian . && docker run -it setup-debian
@@ -38,7 +38,8 @@ No linter/formatter or test runner is configured — 待补充.
 
 ```
 scripts/setup.sh            # Single entry point: detect_distribution(), init_package_manager(),
-                            # PACKAGE_MAPS, one setup_<name>() per subcommand, main case dispatch
+                            # PACKAGE_MAPS, one setup_<name>() per subcommand (including Pi),
+                            # main case dispatch
 neovim/init.lua             # Neovim entry; requires lua/conf.lua etc.
 neovim/lua/keymap.lua       # All keymaps (with desc fields)
 neovim/lua/autocmd.lua      # Autocommands
@@ -118,6 +119,9 @@ Edit the appropriate `neovim/lua/modules/<concern>.lua` spec; keymaps go in `key
 **Test a change**
 
 ```sh
+# Pi and its configured extension packages
+ROOT_DIR=$HOME bash scripts/setup.sh pi
+
 docker build -f Dockerfile.debian -t setup-debian . && docker run -it setup-debian
 # inside container:
 ROOT_DIR=/home/testuser bash backup/scripts/setup.sh <command>
