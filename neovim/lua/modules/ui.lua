@@ -360,8 +360,8 @@ return {
             })
             function _G.set_terminal_keymaps()
                 local opts = {noremap = true}
-                vim.api.nvim_buf_set_keymap(0, 't', '<leader><esc>', [[<C-\><C-n>]],
-                                            opts)
+                vim.api.nvim_buf_set_keymap(0, 't', '<leader><esc>',
+                                            [[<C-\><C-n>]], opts)
                 vim.api.nvim_buf_set_keymap(0, 't', '<C-Left>',
                                             [[<C-\><C-n><C-W>h]], opts)
                 vim.api.nvim_buf_set_keymap(0, 't', '<C-Right>',
