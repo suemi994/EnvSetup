@@ -730,9 +730,22 @@ setup_pi() {
 
     # Keep this list in sync with the user-scoped Pi extensions currently in
     # use. `pi install` records packages in ~/.pi/agent/settings.json.
-    local pi_packages="npm:pi-subagents npm:@narumitw/pi-goal npm:pi-marketplace npm:@narumitw/pi-btw npm:pi-agent-hud npm:pi-mcp-adapter npm:pi-web-access npm:@spences10/pi-lsp npm:codet-pi-init"
+    local pi_packages=(
+        "npm:pi-subagents"
+        "npm:@narumitw/pi-goal"
+        "npm:pi-marketplace"
+        "npm:@narumitw/pi-btw"
+        "npm:pi-agent-hud"
+        "npm:pi-mcp-adapter"
+        "npm:pi-web-access"
+        "npm:@spences10/pi-lsp"
+        "npm:codet-pi-init"
+        "npm:pi-aliases"
+        "npm:pi-tool-display"
+        "npm:@tintinweb/pi-tasks"
+    )
     local package
-    for package in $pi_packages; do
+    for package in "${pi_packages[@]}"; do
         if pi list 2>/dev/null | grep -Fq "$package"; then
             echo "Setup Pi: $package already installed, skipping..."
         else
@@ -744,6 +757,8 @@ setup_pi() {
         fi
     done
 
+    local PI_CONF_DIR="$HOME/.pi/agent/"
+    cp -r $ROOT_DIR/pi-agent/* $HOME/.pi/agent/
     echo "Setup Pi finished, enjoy yourself..."
 }
 
