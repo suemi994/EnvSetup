@@ -439,6 +439,7 @@ if status is-interactive
         tmux attach-session -t main; or tmux new-session -s main
     end
     string match -q "$HOME" "$PWD"; or string match -q "$HOME/*" "$PWD"; or cd "$HOME"
+    fish_vi_key_bindings
     alias co='git checkout'
     alias gstat='git status'
     alias glog='git log'
@@ -777,16 +778,16 @@ setup_pi() {
     local pi_packages=(
         "npm:pi-subagents"
         "npm:@narumitw/pi-goal"
-        "npm:pi-marketplace"
         "npm:@narumitw/pi-btw"
         "npm:pi-agent-hud"
         "npm:pi-mcp-adapter"
         "npm:pi-web-access"
-        "npm:@spences10/pi-lsp"
         "npm:codet-pi-init"
-        "npm:pi-aliases"
         "npm:pi-tool-display"
-        "npm:@tintinweb/pi-tasks"
+        "npm:pi-lens"
+        "npm:@juicesharp/rpiv-ask-user-question"
+        "npm:@juicesharp/rpiv-todo"
+        "npm:@ff-labs/pi-fff"
     )
     local package
     for package in "${pi_packages[@]}"; do
