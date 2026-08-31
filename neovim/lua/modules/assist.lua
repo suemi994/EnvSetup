@@ -16,7 +16,7 @@ return {
                     resume = "--resume"
                 },
                 keymaps = {
-                    toggle = {normal = "<C-a>", terminal = "<C-a>"},
+                    toggle = {normal = "<leader>a", terminal = "<leader>a"},
                     window_navigation = true
                 }
 
@@ -28,7 +28,7 @@ return {
         cmd = {'Codex', 'CodexToggle'}, -- Optional: Load only on command execution
         keys = {
             {
-                '<leader>a', -- Change this to your preferred keybinding
+                '<C-a>', -- Change this to your preferred keybinding
                 function() require('codex').toggle() end,
                 desc = 'Toggle Codex popup or side-panel',
                 mode = {'n', 't'}
