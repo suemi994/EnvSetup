@@ -418,5 +418,11 @@ return {
         dependencies = {'nvim-web-devicons'},
         cmd = {'DiffviewToggleFiles', 'DiffviewFileHistory'},
         config = setup_diffview
+    }, {
+        'MeanderingProgrammer/render-markdown.nvim',
+        dependencies = {
+            'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons'
+        },
+        opts = {}
     }
 }
