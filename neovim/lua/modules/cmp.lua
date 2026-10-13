@@ -25,6 +25,12 @@ local lsp_sources = {
     ['cmake'] = {opt = true, need_require = false, setup_args = {}}
 }
 
+-- If idf.py is found (ESP-IDF environment), use esp32.nvim's config for clangd;
+-- otherwise keep the default value
+if vim.fn.executable('idf.py') == 1 then
+    lsp_sources['clangd'].setup_args = require('esp32').lsp_config()
+end
+
 function setup_lsp(_, opts)
     local navic = require('nvim-navic')
     local on_attach = function(client, bufnr)
@@ -38,8 +44,8 @@ function setup_lsp(_, opts)
                 require(source).setup(conf.setup_args)
             else
                 conf.setup_args['on_attach'] = on_attach
-		vim.lsp.config(source, conf.setup_args)
-		vim.lsp.enable(source)
+                vim.lsp.config(source, conf.setup_args)
+                vim.lsp.enable(source)
             end
         end
     end
@@ -93,19 +99,13 @@ function setup_cmp()
     })
 end
 
-function setup_rust()
-    vim.g.rustaceanvim = function()
-        return {}
-    end
-end
+function setup_rust() vim.g.rustaceanvim = function() return {} end end
 
 return {
     {
         'neovim/nvim-lspconfig',
         version = false,
-        dependencies = {
-            'nvim-navic'
-        },
+        dependencies = {'nvim-navic'},
         opts = lsp_sources,
         config = setup_lsp
     }, {
@@ -122,5 +122,5 @@ return {
         version = '^6', -- Recommended
         lazy = false, -- This plugin is already lazy
         config = setup_rust
-    }
+    }, {'Aietes/esp32.nvim', event = 'VeryLazy'}
 }
